@@ -1,7 +1,6 @@
 module dona_pay::DonaPayCore {
    use std::signer;
-   use std::string::{String, utf8};
-   use std::debug::print;
+   use std::string::{String};
    use aptos_framework:: table:: {Self, Table};
    use std::vector;
 
@@ -19,7 +18,7 @@ module dona_pay::DonaPayCore {
       members: vector<User>,
    }
 
-   struct Groups has key {
+   struct Groups has key{
       allGroups: Table<u64, Group>,
       curr_id: u64,
    }
@@ -27,6 +26,9 @@ module dona_pay::DonaPayCore {
    struct Users has key {
       user: User
    }
+
+   const USER_ALREADY_EXISTS : u64  =  001;
+   const GROUP_NOT_FOUND: u64 = 004;
 
    fun init_module(account: &signer) {
       move_to(account, Groups {
@@ -36,6 +38,7 @@ module dona_pay::DonaPayCore {
    }
 
    public entry fun createUser(account: &signer, name: String, photoUrl: String) {
+      // assert!(exists<Users>(signer::address_of(account)),001);
       let addr = signer::address_of(account);
       let user = User {
          addr: addr,
@@ -45,9 +48,8 @@ module dona_pay::DonaPayCore {
       };
       move_to<Users>(account, Users { user });
    }
-
-   public fun getUser(account: &signer): User acquires Users {
-      let addr = signer::address_of(account);
+   #[view]
+   public fun getUser(addr: address): User acquires Users {
       borrow_global<Users>(addr).user
    }
 
@@ -55,8 +57,7 @@ module dona_pay::DonaPayCore {
       // init_module(account);
       let addr = signer::address_of(account);
 
-      // let group_mut = borrow_global_mut<Groups>(@0x38a5cb2773e0c23e4f2da107e0c69848704b325d0e8fc2c1cf0924dbede4bd67);
-      let group_mut = borrow_global_mut<Groups>(signer::address_of(account));
+      let group_mut = borrow_global_mut<Groups>(@dona_pay);
       // print(&group_mut.curr_id);
       group_mut.curr_id = group_mut.curr_id + 1;
       // print(&group_mut.curr_id);
@@ -67,7 +68,7 @@ module dona_pay::DonaPayCore {
       vector::push_back(&mut admins, addr);
 
       let members = vector::empty<User>();
-      let creator = getUser(account);
+      let creator = getUser(signer::address_of(account));
       vector::push_back(&mut members, creator);
 
       let new_group = Group {
@@ -78,6 +79,11 @@ module dona_pay::DonaPayCore {
       };
 
       table::add<u64, Group>(&mut group_mut.allGroups, group_id, new_group);
+   }
+
+   #[view]
+   public fun get_group(group_id: u64): Group acquires Groups {
+      *table::borrow<u64, Group>(&borrow_global<Groups>(@dona_pay).allGroups, group_id)
    }
 
    #[test(account = @0x12345)]
