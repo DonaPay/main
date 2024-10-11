@@ -1,10 +1,10 @@
 [package]
-name = "MessageBoard"
+name = "DonaPay"
 version = "1.0.0"
 authors = []
 
 [addresses]
-message_board_addr = "_"
+dona_pay = "0x38a5cb2773e0c23e4f2da107e0c69848704b325d0e8fc2c1cf0924dbede4bd67"
 
 [dependencies]
 AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", rev = "mainnet", subdir = "aptos-move/framework/aptos-framework" }
