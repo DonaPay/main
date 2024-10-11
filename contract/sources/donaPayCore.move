@@ -57,8 +57,9 @@ module dona_pay::DonaPayCore {
 
       // let group_mut = borrow_global_mut<Groups>(@0x38a5cb2773e0c23e4f2da107e0c69848704b325d0e8fc2c1cf0924dbede4bd67);
       let group_mut = borrow_global_mut<Groups>(signer::address_of(account));
-      print("")
+      // print(&group_mut.curr_id);
       group_mut.curr_id = group_mut.curr_id + 1;
+      // print(&group_mut.curr_id);
 
       let group_id = group_mut.curr_id;
 
