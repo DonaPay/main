@@ -8,14 +8,14 @@ compiled_package_info:
     aptos_std: "0000000000000000000000000000000000000000000000000000000000000001"
     aptos_token: "0000000000000000000000000000000000000000000000000000000000000003"
     core_resources: 000000000000000000000000000000000000000000000000000000000a550c18
-    dona_pay: 880e85921ebde94965dfec4f3afc9252010f50998427ee232bd749be39315ce2
+    dona_pay: 1812eb9ae553843d1a8cfaee228cb32acfc2552e3eff58af7b9584b0e608ee7e
     std: "0000000000000000000000000000000000000000000000000000000000000001"
     vm: "0000000000000000000000000000000000000000000000000000000000000000"
     vm_reserved: "0000000000000000000000000000000000000000000000000000000000000000"
-  source_digest: 622E4789896DFFA0876F388004569FDE07585A50E5529142268A1F4210FE71F0
+  source_digest: E465637FB75276DD66A7C0F4DC19A0CCAA4C5447C66DED5DCBCA444BF5E38284
   build_flags:
-    dev_mode: false
-    test_mode: false
+    dev_mode: true
+    test_mode: true
     override_std: ~
     generate_docs: false
     generate_abis: false
@@ -28,7 +28,7 @@ compiled_package_info:
     fetch_deps_only: false
     skip_fetch_latest_git_deps: false
     compiler_config:
-      bytecode_version: 6
+      bytecode_version: ~
       known_attributes:
         - bytecode_instruction
         - deprecated

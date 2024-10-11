@@ -35,7 +35,7 @@ module dona_pay::DonaPayCore {
       });
    }
 
-   fun createUser(account: &signer, name: String, photoUrl: String) {
+   public entry fun createUser(account: &signer, name: String, photoUrl: String) {
       let addr = signer::address_of(account);
       let user = User {
          addr: addr,
@@ -46,13 +46,13 @@ module dona_pay::DonaPayCore {
       move_to<Users>(account, Users { user });
    }
 
-   fun getUser(account: &signer): User acquires Users {
+   public fun getUser(account: &signer): User acquires Users {
       let addr = signer::address_of(account);
       borrow_global<Users>(addr).user
    }
 
-   fun createGroup(account: &signer, group_name: String) acquires Groups, Users {
-      init_module(account);
+   public entry fun createGroup(account: &signer, group_name: String) acquires Groups, Users {
+      // init_module(account);
       let addr = signer::address_of(account);
 
       // let group_mut = borrow_global_mut<Groups>(@0x38a5cb2773e0c23e4f2da107e0c69848704b325d0e8fc2c1cf0924dbede4bd67);
