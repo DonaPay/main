@@ -16,6 +16,7 @@ module dona_pay::DonaPayCore {
       name: String,
       admins: vector<address>,
       members: vector<User>,
+      joinRequests: vector<User>
    }
 
    struct Groups has key{
@@ -29,6 +30,8 @@ module dona_pay::DonaPayCore {
 
    const USER_ALREADY_EXISTS : u64  =  001;
    const GROUP_NOT_FOUND: u64 = 004;
+   const PERMISSION_DENIED: u64 = 105;
+   const MEMBER_NOT_PRESENT : u64 = 110;
 
    fun init_module(account: &signer) {
       move_to(account, Groups {
@@ -53,6 +56,11 @@ module dona_pay::DonaPayCore {
       borrow_global<Users>(addr).user
    }
 
+   #[view]
+   public fun getGroupCount():u64 acquires Groups{
+      borrow_global<Groups>(@dona_pay).curr_id
+   }
+
    public entry fun createGroup(account: &signer, group_name: String) acquires Groups, Users {
       // init_module(account);
       let addr = signer::address_of(account);
@@ -67,6 +75,8 @@ module dona_pay::DonaPayCore {
       let admins = vector::empty<address>();
       vector::push_back(&mut admins, addr);
 
+      let join_requests = vector::empty<User>();
+
       let members = vector::empty<User>();
       let creator = getUser(signer::address_of(account));
       vector::push_back(&mut members, creator);
@@ -75,7 +85,8 @@ module dona_pay::DonaPayCore {
          id: group_id,
          name: group_name,
          admins: admins,
-         members: members
+         members: members,
+         joinRequests: join_requests
       };
 
       table::add<u64, Group>(&mut group_mut.allGroups, group_id, new_group);
@@ -86,18 +97,22 @@ module dona_pay::DonaPayCore {
       *table::borrow<u64, Group>(&borrow_global<Groups>(@dona_pay).allGroups, group_id)
    }
 
-   #[test(account = @0x12345)]
-   fun test_create(account: &signer) acquires Users, Groups {
-      let name = utf8(b"Aditya");
-      let photoUrl = utf8(b"google.com");
-      createUser(account, name, photoUrl);
-      let user = getUser(account);
-      print(&user);
+   public entry fun group_join_request(account: &signer, group_id: u64) acquires Users, Groups{
+      let addr = signer::address_of(account);
+      let user = getUser(addr);
+      let groups = &mut borrow_global_mut<Groups>(@dona_pay).allGroups;
+      let group = table::borrow_mut(groups,group_id);
+      vector::push_back(&mut group.joinRequests, user);
+   }
 
-      // Test group creation
-      let group_name = utf8(b"MyGroup");
-      createGroup(account, group_name);
-
-      print(&utf8(b"Group created successfully!"));
+   public entry fun approve_group_join(account: &signer, group_id: u64, member_addr: address) acquires Groups, Users {
+      let admin_addr = signer::address_of(account);
+      let group =  table::borrow_mut<u64, Group>(&mut borrow_global_mut<Groups>(@dona_pay).allGroups, group_id);
+      assert!(vector::contains<address>(&group.admins, &admin_addr),105);
+      let user = getUser(member_addr);
+      let (addr_present, index) = vector::index_of<User>(&group.joinRequests, &user);
+      assert!(addr_present, 110);
+      vector::remove<User>(&mut group.joinRequests, index);
+      vector::push_back<User>(&mut group.members, user);
    }
 }
