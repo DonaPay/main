@@ -14,11 +14,7 @@ export const metadata: Metadata = {
   description: "NextJS Boilerplate Template is a...",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
@@ -26,7 +22,7 @@ export default function RootLayout({
           <ReactQueryProvider>
             <div id="root">{children}</div>
             <WrongNetworkAlert />
-            <TopBanner />
+            {/* <TopBanner /> */}
             <Toaster />
           </ReactQueryProvider>
         </WalletProvider>

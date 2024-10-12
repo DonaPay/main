@@ -36,6 +36,7 @@ module dona_pay::DonaPayCore {
    }
 
    public entry fun createUser(account: &signer, name: String, photoUrl: String) {
+      assert!();
       let addr = signer::address_of(account);
       let user = User {
          addr: addr,
