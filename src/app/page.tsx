@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
-import { PUBLISHER_ADDRESS } from "@/constants";
 import { CreateGroup } from "./entry-functions/CreateGroup";
 import { CreateUser } from "./entry-functions/CreateUser";
 import { getUserStruct } from "@/view-functions/getUserStruct";

@@ -32,6 +32,7 @@ module dona_pay::DonaPayCore {
    const GROUP_NOT_FOUND: u64 = 004;
    const PERMISSION_DENIED: u64 = 105;
    const MEMBER_NOT_PRESENT : u64 = 110;
+   const MEMBER_ALREADY_PRESENT: u64 = 111;
 
    fun init_module(account: &signer) {
       move_to(account, Groups {
@@ -89,6 +90,8 @@ module dona_pay::DonaPayCore {
          joinRequests: join_requests
       };
 
+      vector::push_back<u64>(&mut borrow_global_mut<Users>(addr).user.groups, group_id);
+
       table::add<u64, Group>(&mut group_mut.allGroups, group_id, new_group);
       group_id
    }
@@ -103,6 +106,7 @@ module dona_pay::DonaPayCore {
       let user = getUser(addr);
       let groups = &mut borrow_global_mut<Groups>(@dona_pay).allGroups;
       let group = table::borrow_mut(groups,group_id);
+      assert!(vector::contains<User>(&group.members, &user), 111);
       vector::push_back(&mut group.joinRequests, user);
    }
 
@@ -115,5 +119,7 @@ module dona_pay::DonaPayCore {
       assert!(addr_present, 110);
       vector::remove<User>(&mut group.joinRequests, index);
       vector::push_back<User>(&mut group.members, user);
+      vector::push_back<u64>(&mut borrow_global_mut<Users>(member_addr).user.groups, group_id);
+
    }
 }
