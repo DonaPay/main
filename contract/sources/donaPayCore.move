@@ -11,21 +11,22 @@ module dona_pay::DonaPayCore {
       groups: vector<u64> 
    }
 
+   struct Users has key {
+      user: User
+   }
+
    struct Group has store, copy, drop {
       id: u64,
       name: String,
       admins: vector<address>,
       members: vector<address>,
       joinRequests: vector<address>
+      ledger: 
    }
 
    struct Groups has key{
       allGroups: Table<u64, Group>,
       curr_id: u64,
-   }
-
-   struct Users has key {
-      user: User
    }
 
    struct Random has key{
