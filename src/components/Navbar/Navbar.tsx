@@ -7,7 +7,6 @@ import { gsap } from "gsap";
 import { GrClose } from "react-icons/gr";
 import { WalletSelector } from "../WalletSelector";
 
-
 const menuLinks = [
   {
     path: "/",
@@ -21,13 +20,13 @@ const menuLinks = [
     path: "/flashloan",
     label: "FLASH LOAN",
   },
-  { 
+  {
     path: "/addressbook",
-     label: "ADDRESS BOOK" 
+    label: "ADDRESS BOOK",
   },
-  { 
+  {
     path: "/termsandconditions",
-    label: "T&C" 
+    label: "T&C",
   },
 ];
 
@@ -99,7 +98,9 @@ const Navbar = () => {
           {menuLinks.map((link, index) => (
             <div className="menu-link-item" key={index}>
               <div className="menu-link-item-holder" onClick={toggleMenu}>
-                <Link href={link.path} className="menu-link">{link.label}</Link>
+                <Link href={link.path} className="menu-link">
+                  {link.label}
+                </Link>
               </div>
             </div>
           ))}
@@ -107,19 +108,10 @@ const Navbar = () => {
 
         <div className="menu-info">
           <div className="menu-info-col">
-            <a
-              href="https://github.com/DonaPay"
-              className="text-black text-lg font-semibold"
-            >
+            <a href="https://github.com/DonaPay" className="text-black text-lg font-semibold">
               Github &#8599;
             </a>
             <br />
-            <a
-              href="https://donapay.vercel.app"
-              className="text-black text-lg font-semibold"
-            >
-              donapay.vercel.app &#8599;
-            </a>
           </div>
         </div>
       </div>
