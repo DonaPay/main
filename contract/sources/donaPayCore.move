@@ -67,9 +67,8 @@ module dona_pay::DonaPayCore {
       let addr = signer::address_of(account);
 
       let group_mut = borrow_global_mut<Groups>(@dona_pay);
-      // print(&group_mut.curr_id);
+
       group_mut.curr_id = group_mut.curr_id + 1;
-      // print(&group_mut.curr_id);
 
       let group_id = group_mut.curr_id;
 
@@ -89,6 +88,8 @@ module dona_pay::DonaPayCore {
          members: members,
          joinRequests: join_requests
       };
+
+      vector::push_back<u64>(&mut borrow_global_mut<Users>(addr).user.groups, group_id);
 
       table::add<u64, Group>(&mut group_mut.allGroups, group_id, new_group);
    }
@@ -116,5 +117,8 @@ module dona_pay::DonaPayCore {
       assert!(addr_present, 110);
       vector::remove<User>(&mut group.joinRequests, index);
       vector::push_back<User>(&mut group.members, user);
+      vector::push_back<u64>(&mut borrow_global_mut<Users>(member_addr).user.groups, group_id);
    }
+
+   
 }
