@@ -15,13 +15,23 @@ module dona_pay::DonaPayCore {
       user: User
    }
 
+   struct PersonalLedger has store, copy, drop{
+
+   }
+
+   struct GroupLedger has store, copy, drop {
+    // Mapping of debtor to creditors and the amount owed
+    debts: Table<address, Table<address, u64>>
+}
+
+
    struct Group has store, copy, drop {
       id: u64,
       name: String,
       admins: vector<address>,
       members: vector<address>,
-      joinRequests: vector<address>
-      ledger: 
+      joinRequests: vector<address>,
+      ledger: GroupLedger // Each group has a ledger
    }
 
    struct Groups has key{
@@ -141,6 +151,78 @@ module dona_pay::DonaPayCore {
       vector::push_back<address>(&mut group.members, member_addr);
       vector::push_back<u64>(&mut borrow_global_mut<Users>(member_addr).user.groups, group_id);
    }
+
+      public entry fun split_expense(
+      account: &signer, 
+      group_id: u64, 
+      total_amount: u64, 
+      participants: vector<address>
+   ) acquires Groups {
+         
+      let addr = signer::address_of(account);
+      
+      // Borrow the group
+      let group = &mut table::borrow_mut<u64, Group>(&mut borrow_global_mut<Groups>(@dona_pay).allGroups, group_id);
+      
+      // Ensure the caller is a member of the group
+      assert!(vector::contains<address>(&group.members, &addr), PERMISSION_DENIED);
+      
+      // Split the amount equally among the participants
+      let num_participants = vector::length<address>(&participants);
+      let split_amount = total_amount / num_participants;
+
+      // Borrow the group ledger
+      let ledger = &mut group.ledger.debts;
+      
+      // Add debt entries for each participant except the caller
+      for participant in participants {
+         if (participant != addr) { // Skip the caller
+               // Borrow or create a nested table for each participant (debtor)
+               let creditor_table = table::borrow_with_default_mut<address, Table<address, u64>>(
+                  ledger, 
+                  participant, 
+                  table::new<address, u64>()
+               );
+
+               // Update the debt amount for the caller (as the creditor)
+               let current_debt = table::borrow_with_default_mut<address, u64>(creditor_table, addr, 0);
+               *current_debt = *current_debt + split_amount;
+         }
+      }
+   }
+
+   public entry fun settle_debt(
+      account: &signer, 
+      group_id: u64, 
+      creditor: address, 
+      amount: u64
+   ) acquires Groups {
+      let debtor = signer::address_of(account);
+
+      // Borrow the group and the group ledger
+      let group = &mut table::borrow_mut<u64, Group>(&mut borrow_global_mut<Groups>(@dona_pay).allGroups, group_id);
+      let ledger = &mut group.ledger.debts;
+
+      // Ensure the debtor has a debt entry with the creditor
+      let creditor_table = table::borrow_mut<address, Table<address, u64>>(ledger, debtor);
+      let debt = table::borrow_mut<address, u64>(creditor_table, creditor);
+      assert!(*debt >= amount, MEMBER_NOT_PRESENT);
+
+      // Reduce the debt
+      *debt = *debt - amount;
+
+      // If the debt is fully settled, remove the entry
+      if (*debt == 0) {
+         table::remove<address, u64>(creditor_table, creditor);
+      }
+
+      // If the debtor has no more creditors, remove their entry from the ledger
+      if (table::length(creditor_table) == 0) {
+         table::remove<address, Table<address, u64>>(ledger, debtor);
+      }
+   }
+
+
 
    #[view]
    public fun getRandomValue(): u64 acquires Random{
