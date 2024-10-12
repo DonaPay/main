@@ -36,6 +36,7 @@ function App() {
             </HoverBorderGradient>
           </Link>
         </div>
+        <Application />
         <div className="absolute bottom-4 mx-auto max-w-xl text-sm md:text-lg text-neutral-700 dark:text-neutral-400 text-center">
           Powered by Aptos.
         </div>

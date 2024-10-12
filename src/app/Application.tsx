@@ -76,7 +76,6 @@ function Application() {
 
   return (
     <>
-      <Header />
       <div className="flex items-center justify-center flex-col gap-5">
         <div className="flex flex-row gap-2 items-center">
           <input
