@@ -61,7 +61,7 @@ module dona_pay::DonaPayCore {
       borrow_global<Groups>(@dona_pay).curr_id
    }
 
-   public entry fun createGroup(account: &signer, group_name: String) acquires Groups, Users {
+   public entry fun createGroup(account: &signer, group_name: String): u64 acquires Groups, Users {
       // init_module(account);
       let addr = signer::address_of(account);
 
@@ -90,6 +90,7 @@ module dona_pay::DonaPayCore {
       };
 
       table::add<u64, Group>(&mut group_mut.allGroups, group_id, new_group);
+      group_id
    }
 
    #[view]

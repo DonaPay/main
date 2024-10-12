@@ -92,6 +92,8 @@ module dona_pay::DonaPayCore {
       table::add<u64, Group>(&mut group_mut.allGroups, group_id, new_group);
    }
 
+   
+
    #[view]
    public fun get_group(group_id: u64): Group acquires Groups {
       *table::borrow<u64, Group>(&borrow_global<Groups>(@dona_pay).allGroups, group_id)
