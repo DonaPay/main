@@ -1,0 +1,96 @@
+.menu-bar,  .menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 2;
+    @apply text-black dark:text-white px-6 md:px-[6rem] py-4;
+}
+
+#close {
+    @apply text-neutral-900 cursor-pointer text-2xl z-[999];
+}
+
+#open {
+    @apply cursor-pointer text-2xl z-[998];
+}
+
+.menu-bar a,
+.menu-open p {
+    /*color: #000;*/
+    cursor: pointer;
+}
+
+.menu-close p {
+    color: #000;
+    cursor: pointer;
+}
+
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #F8F6E3;
+    color: black;
+    z-index: 999;
+    display: flex;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%);
+    @apply flex-col md:flex-row justify-center md:justify-between;
+}
+
+.menu-overlay-bar{
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    @apply  px-6 md:px-[6rem] py-4 justify-between;
+}
+
+.menu-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    @apply px-4 text-lg;
+}
+
+.menu-link-item {
+    width: max-content;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+}
+
+.menu-link-item-holder {
+    position: relative;
+}
+
+.menu-link-item-holder a {
+    color: #000; 
+    font-size: 80px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 85%;
+}
+
+.menu-info {
+    display: flex;
+    @apply absolute bottom-8 left-6 md:static;
+}
+
+.menu-info-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+@media (max-width: 900px) {
+    .menu-link-item-holder a {
+         font-size: 50px;
+    }
+} 

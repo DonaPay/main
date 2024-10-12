@@ -5,9 +5,11 @@ import { ReactQueryProvider } from "@/components/ReactQueryProvider";
 import { WalletProvider } from "@/components/WalletProvider";
 import { Toaster } from "@/components/ui/toaster";
 import { WrongNetworkAlert } from "@/components/WrongNetworkAlert";
-import { TopBanner } from "@/components/TopBanner";
+import { ThemeProvider } from "next-themes";
+
 
 import "./globals.css";
+import Navbar from "@/components/Navbar/Navbar";
 
 export const metadata: Metadata = {
   title: "NextJS Boilerplate Template",
@@ -18,14 +20,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <WalletProvider>
-          <ReactQueryProvider>
-            <div id="root">{children}</div>
-            <WrongNetworkAlert />
-            {/* <TopBanner /> */}
-            <Toaster />
-          </ReactQueryProvider>
-        </WalletProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <WalletProvider>
+            <ReactQueryProvider>
+              <div id="root">
+                <Navbar />
+                {children}
+                </div>
+              <WrongNetworkAlert />
+              <Toaster />
+            </ReactQueryProvider>
+          </WalletProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
