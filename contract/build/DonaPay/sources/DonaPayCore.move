@@ -62,7 +62,7 @@ module dona_pay::DonaPayCore {
       borrow_global<Groups>(@dona_pay).curr_id
    }
 
-   public entry fun createGroup(account: &signer, group_name: String): u64 acquires Groups, Users {
+   public entry fun createGroup(account: &signer, group_name: String) acquires Groups, Users {
       // init_module(account);
       let creator = signer::address_of(account);
 
@@ -91,8 +91,9 @@ module dona_pay::DonaPayCore {
       vector::push_back<u64>(&mut borrow_global_mut<Users>(creator).user.groups, group_id);
 
       table::add<u64, Group>(&mut group_mut.allGroups, group_id, new_group);
-      group_id
    }
+
+   
 
    #[view]
    public fun get_group(group_id: u64): Group acquires Groups {
@@ -114,6 +115,18 @@ module dona_pay::DonaPayCore {
       let (addr_present, index) = vector::index_of<address>(&group.joinRequests, &member_addr);
       assert!(addr_present, 110);
       vector::remove<address>(&mut group.joinRequests, index);
+      vector::push_back<address>(&mut group.members, member_addr);
+      vector::push_back<u64>(&mut borrow_global_mut<Users>(member_addr).user.groups, group_id);
+   }
+
+   public entry fun add_members_to_group(account: &signer, group_id: u64, member_addr : address) acquires Groups, Users {
+      let admin_addr = signer::address_of(account);
+      let group =  table::borrow_mut<u64, Group>(&mut borrow_global_mut<Groups>(@dona_pay).allGroups, group_id);
+      assert!(vector::contains<address>(&group.admins, &admin_addr),105);
+      let (addr_present, index) = vector::index_of<address>(&group.joinRequests, &member_addr);
+      if(addr_present) {
+         vector::remove<address>(&mut group.joinRequests, index);
+      };
       vector::push_back<address>(&mut group.members, member_addr);
       vector::push_back<u64>(&mut borrow_global_mut<Users>(member_addr).user.groups, group_id);
    }
