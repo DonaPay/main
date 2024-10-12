@@ -10,25 +10,25 @@ import { getGroupStruct } from "@/view-functions/getGroupStruct";
 function App() {
   const { account, signAndSubmitTransaction, connected } = useWallet();
 
-  const [groupName, setGroupName] = useState("");
-  const [name, setName] = useState("");
-  const [photoUrl, setPhotoUrl] = useState("");
-  const [groupid, setGroupid] = useState(0);
+  const [groupName, setGroupName] = useState<string>("");
+  const [name, setName] = useState<string>("");
+  const [photoUrl, setPhotoUrl] = useState<string>("");
+  const [groupid, setGroupid] = useState<number>(0);
 
-  const handleNameChange = (e) => {
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setName(e.target.value); // Update the name state
   };
 
-  const handlePhotoUrlChange = (e) => {
+  const handlePhotoUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPhotoUrl(e.target.value); // Update the photo URL state
   };
 
-  const handleGroupNameChange = (e) => {
+  const handleGroupNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setGroupName(e.target.value); // Update the group name state
   };
 
-  const handleGroupIdChange = (e) => {
-    setGroupid(e.target.value); // Update the group id state
+  const handleGroupIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setGroupid(Number(e.target.value)); // Update the group id state
   };
 
   const handleCreateUser = async () => {
