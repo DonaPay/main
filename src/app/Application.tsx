@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import { Header } from "@/components/Header";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { getUserStruct } from "@/view-functions/getUserStruct";
 import { getGroupStruct } from "@/view-functions/getGroupStruct";
@@ -38,7 +37,7 @@ function Application() {
     }
 
     const transaction = await CreateUser(name, photoUrl);
-    const txn = await signAndSubmitTransaction(transaction);
+    const txn = await signAndSubmitTransaction(transaction as any);
     console.log(txn);
     return txn;
   };
@@ -49,7 +48,7 @@ function Application() {
       return;
     }
     const transaction = await CreateGroup(groupName);
-    const txn = await signAndSubmitTransaction(transaction);
+    const txn = await signAndSubmitTransaction(transaction as any);
     console.log(txn);
     return txn;
   };
@@ -76,7 +75,7 @@ function Application() {
 
   return (
     <>
-      <div className="flex items-center justify-center flex-col gap-5">
+      <div className="flex items-center justify-center flex-col gap-5 pt-5">
         <div className="flex flex-row gap-2 items-center">
           <input
             type="text"
