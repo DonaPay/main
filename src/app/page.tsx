@@ -2,8 +2,8 @@
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
-import { CreateGroup } from "./entry-functions/CreateGroup";
-import { CreateUser } from "./entry-functions/CreateUser";
+import { CreateGroup } from "@/entry-functions/CreateGroup";
+import { CreateUser } from "@/entry-functions/CreateUser";
 import { getUserStruct } from "@/view-functions/getUserStruct";
 import { getGroupStruct } from "@/view-functions/getGroupStruct";
 
@@ -48,7 +48,7 @@ function App() {
       console.error("Wallet not connected or account missing");
       return;
     }
-    const name = "Test Group x";
+
     const transaction = await CreateGroup(groupName);
     const txn = await signAndSubmitTransaction(transaction);
     console.log(txn);
