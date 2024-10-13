@@ -1,16 +1,15 @@
 "use client";
-import { BackgroundLines } from "@/components/ui/background-lines";
-import { HoverBorderGradient } from "@/components/ui/hover-border-fradient";
+import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
 import Link from "next/link";
-import Application from "./Application";
-import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import CanvasCursor from "@/components/ui/canvas-cursor";
+import Navbar from "@/components/Navbar/Navbar";
 
 function App() {
-  const { connected, connect } = useWallet()
+  // const { connected, connect } = useWallet()
 
   return (
     <div className="relative h-[100vh] overflow-hidden w-full bg-slate-950">
+      <Navbar />
        <div className="absolute bottom-0 left-[-20%] right-0 top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(255,0,182,.15),rgba(255,255,255,0))]">
       </div>
       <div className="absolute bottom-0 right-[-20%] top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(255,0,182,.15),rgba(255,255,255,0))]">
@@ -29,7 +28,7 @@ function App() {
               containerClassName="rounded-full"
               as="button"
               className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2"
-              onClick={() => connect()}
+              // onClick={() => connect()}
               >
               <span>Start Spending</span>
             </HoverBorderGradient>
