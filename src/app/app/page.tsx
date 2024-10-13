@@ -1,8 +1,23 @@
 "use client";
+import CreateProfile from "@/components/create-profile/CreateProfile";
+import GroupChat from "@/components/GroupChat/GroupChat";
 import Sidebar from "@/components/Sidebar/Sidebar";
+import { useGlobalContext } from "@/GlobalProvider";
+import { useWallet } from "@aptos-labs/wallet-adapter-react";
+import { useEffect, useState } from "react";
 
 function Application() {
-    // const { account, signAndSubmitTransaction, connected } = useWallet();
+    const { connected } = useWallet();
+    const [section, setSection] = useState<string>("")
+    const [groupId, setGroupId] = useState<string>("")
+
+    const { user, loading } = useGlobalContext()
+
+    useEffect(() => {
+        if (!loading && connected && !user)
+            setSection("create-profile")
+    }, [user])
+
 
     // const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     //     setName(e.target.value);
@@ -43,7 +58,7 @@ function Application() {
     //     return txn;
     // };
 
-    
+
 
     // const handleGetGroup = async () => {
     //     if (!connected || !account) {
@@ -60,9 +75,19 @@ function Application() {
     // },[user])
 
     return (
-       
-        <div className="bg-gray-100 dark:bg-neutral-800 flex w-full flex-1 border border-neutral-200 dark:border-neutral-700 h-screen">
-            <Sidebar />
+        <div className="fixed bg-gray-100 dark:bg-neutral-800 text-black dark:text-white flex w-full min-h-[100vh]">
+            <div className='bg-gray-200 dark:bg-neutral-900 text-black dark:text-white  
+            min-w-[20%] flex flex-col p-4 md:p-6 gap-4'>
+                <Sidebar section={section} setSection={setSection} setGroupId={setGroupId} groupId={groupId}/>
+            </div>
+            <div className="w-full p-4 md:p-6">
+                {section == "create-profile" && <CreateProfile />}
+
+                {section == "group" && <GroupChat groupId={groupId}/>}
+
+            </div>
+            
+
         </div>
     );
 }
