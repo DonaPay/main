@@ -17,10 +17,10 @@ export const getUserStruct = async (address: string) => {
   } catch (error: any) {
     if (error.message.includes("112")) {
       console.error("User does not exist.");
-      alert("The user does not exist."); // Display an alert or message to the user
+      // alert("The user does not exist."); 
     } else {
       console.error("An unexpected error occurred:", error.message);
-      alert("An unexpected error occurred. Please try again."); // Handle other errors
+      // alert("An unexpected error occurred. Please try again."); 
     }
     return null;
   }

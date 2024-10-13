@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { Group, User } from './GlobalTypes';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import { getUserStruct } from './view-functions/getUserStruct';
+import { getUserGroupStruct } from './view-functions/getUserGroupStruct';
 
 interface GlobalContextProps {
     user: User | null;
@@ -42,6 +43,8 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
                 const fetchedUser = await getUserStruct(account.address);
                 console.log("User", fetchedUser);
 
+                // const fetchedGroups = await getUserGroupStruct(fetchedUser.) 
+
                 if (fetchedUser && fetchedUser) {
                     setUser(fetchedUser);
                 } else {
@@ -52,7 +55,7 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
                 console.error("Error fetching user data:", error);
                 setUser(null);
             } finally {
-                // setLoading(false);
+                setLoading(false);
             }
         };
 

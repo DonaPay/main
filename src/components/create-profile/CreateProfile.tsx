@@ -26,10 +26,12 @@ const CreateProfile = () => {
             if(userImage){
                const hash = await uploadToArweave(userImage)
                 const imageUrl = `https://akrd.net/${hash}`
+                console.log("url", imageUrl)
                 const trxObject = await CreateUser(name,imageUrl)
                 if (trxObject){
                     const txn = await signAndSubmitTransaction(trxObject as any);
                     console.log("create user txn", txn)
+                    
                 }
             }
             else console.log("no image")

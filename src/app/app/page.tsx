@@ -14,8 +14,14 @@ function Application() {
   const { user, loading } = useGlobalContext();
 
   useEffect(() => {
-    if (!loading && connected && !user) setSection("create-profile");
-  }, [user]);
+    console.log("loading",loading)
+    console.log("connected",connected)
+    console.log("user",user)
+    console.log("section",section)
+    if (!loading && connected && user == null){
+        setSection("create-profile");
+    } 
+  }, [user, loading, connected, section]);
 
   // const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   //     setName(e.target.value);
@@ -87,7 +93,7 @@ function Application() {
         <Sidebar section={section} setSection={setSection} setGroupId={setGroupId} groupId={groupId} />
       </div>
       <div className="w-full p-4 md:p-6">
-        {section == "create-profile" && <CreateProfile />}
+            {section == "create-profile" && <CreateProfile />}
 
         {section == "group" && <GroupChat groupId={groupId} />}
       </div>
