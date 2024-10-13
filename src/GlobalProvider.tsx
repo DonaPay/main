@@ -1,13 +1,8 @@
 "use client"
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { User } from './GlobalTypes';
+import { Group, User } from './GlobalTypes';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import { getUserStruct } from './view-functions/getUserStruct';
-
-interface Group {
-    id: string;
-    name: string;
-}
 
 interface GlobalContextProps {
     user: User | null;
@@ -61,8 +56,8 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
             }
         };
 
-        fetchData(); // Call the fetchData function when the component mounts
-    }, [connected, account]); // Add 'connected' and 'account' as dependencies
+        fetchData(); 
+    }, [connected, account]);
 
     return (
         <GlobalContext.Provider value={{ user, setUser, groups, setGroups, loading, setLoading }}>
