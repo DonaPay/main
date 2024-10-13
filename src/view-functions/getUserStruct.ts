@@ -4,14 +4,24 @@ import { User } from "@/GlobalTypes";
 // const aptos = new Aptos();
 
 export const getUserStruct = async (address: string) => {
-  const user = await aptosClient().view({
-    payload: {
-      function: `${PUBLISHER_ADDRESS}::DonaPayCore::getUser`,
-      typeArguments: [],
-      functionArguments: [address],
-    },
-  });
-  if(user[0])
-  return user[0] as User;
-  else return null
+  try {
+    const user = await aptosClient().view({
+      payload: {
+        function: `${PUBLISHER_ADDRESS}::DonaPayCore::getUser`,
+        typeArguments: [],
+        functionArguments: [address],
+      },
+    });
+
+    return user;
+  } catch (error: any) {
+    if (error.message.includes("112")) {
+      console.error("User does not exist.");
+      alert("The user does not exist."); // Display an alert or message to the user
+    } else {
+      console.error("An unexpected error occurred:", error.message);
+      alert("An unexpected error occurred. Please try again."); // Handle other errors
+    }
+    return null;
+  }
 };
