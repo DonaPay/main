@@ -3,6 +3,7 @@ module dona_pay::DonaPayCore {
    use std::string::{String};
    use aptos_framework:: table:: {Self, Table};
    use std::vector;
+   use std::debug;
 
    struct User has store, copy, drop {
       addr: address,
@@ -11,21 +12,42 @@ module dona_pay::DonaPayCore {
       groups: vector<u64> 
    }
 
+   struct Users has key {
+      user: User
+   }
+
+//    struct PersonalLedger has store, copy, drop {
+//     addr: address,                // Address of the person this ledger belongs to
+//     balances: Table<address, u64>, // Tracks amounts owed to/from other group members
+// }
+
+//    struct Transaction has store, copy, drop {
+//     id: u64,                   // Unique ID of the transaction
+//     description: String,        // Description of the transaction (e.g., "Dinner bill")
+//     payer: address,             // Address of the user who paid
+//     amount: u64,                // Total amount of the transaction
+//     split_amount: u64,          // Amount each member owes (after splitting)            
+// }
+
+//    struct GroupLedger has store, copy, drop {
+//     personal_ledgers: vector<PersonalLedger>, // Maps each member's address to their personal ledger
+//     transactions: vector<Transaction>,                // List of all transactions in the group
+//     total_balance: u64,                               // Total outstanding balance for the group
+// }
+
+
    struct Group has store, copy, drop {
       id: u64,
       name: String,
       admins: vector<address>,
       members: vector<address>,
-      joinRequests: vector<address>
+      joinRequests: vector<address>,
+      // ledger: GroupLedger // Each group has a ledger
    }
 
    struct Groups has key{
       allGroups: Table<u64, Group>,
       curr_id: u64,
-   }
-
-   struct Users has key {
-      user: User
    }
 
    struct Random has key{
@@ -71,6 +93,23 @@ module dona_pay::DonaPayCore {
    public fun getGroupCount():u64 acquires Groups{
       borrow_global<Groups>(@dona_pay).curr_id
    }
+
+   #[view]
+   public fun get_user_groups(addr: address): vector<Group> acquires Users, Groups {
+    let user_groups = borrow_global<Users>(addr).user.groups;
+    let result: vector<Group> = vector::empty<Group>();
+
+    let length = vector::length(&user_groups);
+    let i = 0;
+    while (i < length) {
+        let group_id = *vector::borrow(&user_groups, i);
+        let group = *table::borrow<u64, Group>(&borrow_global<Groups>(@dona_pay).allGroups, group_id);
+        vector::push_back(&mut result, group);
+        i = i + 1;
+    };
+    result 
+}
+
 
    public entry fun createGroup(account: &signer, group_name: String) acquires Groups, Users {
       // init_module(account);
@@ -141,6 +180,78 @@ module dona_pay::DonaPayCore {
       vector::push_back<u64>(&mut borrow_global_mut<Users>(member_addr).user.groups, group_id);
    }
 
+   //    public entry fun split_expense(
+   //    account: &signer, 
+   //    group_id: u64, 
+   //    total_amount: u64, 
+   //    participants: vector<address>
+   // ) acquires Groups {
+         
+   //    let addr = signer::address_of(account);
+      
+   //    // Borrow the group
+   //    let group = &mut table::borrow_mut<u64, Group>(&mut borrow_global_mut<Groups>(@dona_pay).allGroups, group_id);
+      
+   //    // Ensure the caller is a member of the group
+   //    assert!(vector::contains<address>(&group.members, &addr), PERMISSION_DENIED);
+      
+   //    // Split the amount equally among the participants
+   //    let num_participants = vector::length<address>(&participants);
+   //    let split_amount = total_amount / num_participants;
+
+   //    // Borrow the group ledger
+   //    let ledger = &mut group.ledger.debts;
+      
+   //    // Add debt entries for each participant except the caller
+   //    for participant in participants {
+   //       if (participant != addr) { // Skip the caller
+   //             // Borrow or create a nested table for each participant (debtor)
+   //             let creditor_table = table::borrow_with_default_mut<address, Table<address, u64>>(
+   //                ledger, 
+   //                participant, 
+   //                table::new<address, u64>()
+   //             );
+
+   //             // Update the debt amount for the caller (as the creditor)
+   //             let current_debt = table::borrow_with_default_mut<address, u64>(creditor_table, addr, 0);
+   //             *current_debt = *current_debt + split_amount;
+   //       }
+   //    }
+   // }
+
+   // public entry fun settle_debt(
+   //    account: &signer, 
+   //    group_id: u64, 
+   //    creditor: address, 
+   //    amount: u64
+   // ) acquires Groups {
+   //    let debtor = signer::address_of(account);
+
+   //    // Borrow the group and the group ledger
+   //    let group = &mut table::borrow_mut<u64, Group>(&mut borrow_global_mut<Groups>(@dona_pay).allGroups, group_id);
+   //    let ledger = &mut group.ledger.debts;
+
+   //    // Ensure the debtor has a debt entry with the creditor
+   //    let creditor_table = table::borrow_mut<address, Table<address, u64>>(ledger, debtor);
+   //    let debt = table::borrow_mut<address, u64>(creditor_table, creditor);
+   //    assert!(*debt >= amount, MEMBER_NOT_PRESENT);
+
+   //    // Reduce the debt
+   //    *debt = *debt - amount;
+
+   //    // If the debt is fully settled, remove the entry
+   //    if (*debt == 0) {
+   //       table::remove<address, u64>(creditor_table, creditor);
+   //    }
+
+   //    // If the debtor has no more creditors, remove their entry from the ledger
+   //    if (table::length(creditor_table) == 0) {
+   //       table::remove<address, Table<address, u64>>(ledger, debtor);
+   //    }
+   // }
+
+
+
    #[view]
    public fun getRandomValue(): u64 acquires Random{
       borrow_global<Random>(@dona_pay).num
@@ -156,6 +267,23 @@ module dona_pay::DonaPayCore {
        let num_mut = &mut borrow_global_mut<Random>(@dona_pay).num;
        *num_mut = num;
    } 
+
+   #[test]
+   fun test_get_user_groups() acquires Users, Groups {
+    let user_addr: address = @0x0fa795f2566b0eeebbe1a2dcbe127161b02eda171d8a5053a979c623eac23af3; // Replace with a valid address
+    let user_groups = get_user_groups(user_addr);
+
+    // Print the names of the groups the user belongs to
+    let length = vector::length(&user_groups);
+    let i = 0;
+
+    while (i < length) {
+        let group = *vector::borrow(&user_groups, i); // Borrow the group at index i
+        debug::print(&group.name); // Print the group name
+        i = i + 1; // Increment the index
+    }
+}
+
 
 
 }

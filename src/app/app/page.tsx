@@ -1,75 +1,82 @@
 "use client";
 import Sidebar from "@/components/Sidebar/Sidebar";
+import { useWallet } from "@aptos-labs/wallet-adapter-react";
+import { getUserGroupStruct } from "@/view-functions/getUserGroupStruct";
 
 function Application() {
-    // const { account, signAndSubmitTransaction, connected } = useWallet();
+  const { account, signAndSubmitTransaction, connected } = useWallet();
 
-    // const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     setName(e.target.value);
-    // };
+  // const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //     setName(e.target.value);
+  // };
 
-    // const handlePhotoUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     setPhotoUrl(e.target.value);
-    // };
+  // const handlePhotoUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //     setPhotoUrl(e.target.value);
+  // };
 
-    // const handleGroupNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     setGroupName(e.target.value);
-    // };
+  // const handleGroupNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //     setGroupName(e.target.value);
+  // };
 
-    // const handleGroupIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     setGroupid(Number(e.target.value));
-    // };
+  // const handleGroupIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //     setGroupid(Number(e.target.value));
+  // };
 
-    // const handleCreateUser = async () => {
-    //     if (!connected || !account) {
-    //         console.error("Wallet not connected or account missing");
-    //         return;
-    //     }
+  // const handleCreateUser = async () => {
+  //     if (!connected || !account) {
+  //         console.error("Wallet not connected or account missing");
+  //         return;
+  //     }
 
-    //     const transaction = await CreateUser(name, photoUrl);
-    //     const txn = await signAndSubmitTransaction(transaction as any);
-    //     console.log(txn);
-    //     return txn;
-    // };
+  //     const transaction = await CreateUser(name, photoUrl);
+  //     const txn = await signAndSubmitTransaction(transaction as any);
+  //     console.log(txn);
+  //     return txn;
+  // };
 
-    // const handleCreateGroup = async () => {
-    //     if (!connected || !account) {
-    //         console.error("Wallet not connected or account missing");
-    //         return;
-    //     }
-    //     const transaction = await CreateGroup(groupName);
-    //     const txn = await signAndSubmitTransaction(transaction as any);
-    //     console.log(txn);
-    //     return txn;
-    // };
+  // const handleCreateGroup = async () => {
+  //     if (!connected || !account) {
+  //         console.error("Wallet not connected or account missing");
+  //         return;
+  //     }
+  //     const transaction = await CreateGroup(groupName);
+  //     const txn = await signAndSubmitTransaction(transaction as any);
+  //     console.log(txn);
+  //     return txn;
+  // };
 
-    
+  // const handleGetGroup = async () => {
+  //     if (!connected || !account) {
+  //         console.error("Wallet not connected or account missing");
+  //         return;
+  //     }
 
-    // const handleGetGroup = async () => {
-    //     if (!connected || !account) {
-    //         console.error("Wallet not connected or account missing");
-    //         return;
-    //     }
+  //     const fetchedGroup = await getGroupStruct(groupid);
+  //     console.log(fetchedGroup);
+  // };
 
-    //     const fetchedGroup = await getGroupStruct(groupid);
-    //     console.log(fetchedGroup);
-    // };
+  // useEffect(() => {
+  //     console.log("first", user)
+  // },[user])
 
-    // useEffect(() => {
-    //     console.log("first", user)
-    // },[user])
+  //   const handleGetUserGroup = async () => {
+  //     if (!connected || !account) {
+  //       console.error("Wallet not connected or account missing");
+  //       return;
+  //     }
 
-    return (
-       
-        <div className="bg-gray-100 dark:bg-neutral-800 flex w-full flex-1 border border-neutral-200 dark:border-neutral-700 h-screen">
-            <Sidebar />
-        </div>
-    );
+  //     const fetchedUserGroup = await getUserGroupStruct(account.address);
+  //     console.log(fetchedUserGroup);
+  //   };
+
+  return (
+    <div className="bg-gray-100 dark:bg-neutral-800 flex w-full justify-end flex-1 border border-neutral-200 dark:border-neutral-700 h-screen">
+      <Sidebar />
+    </div>
+  );
 }
 
 export default Application;
-
-
 
 // <>
 //   <div className="flex items-center justify-center flex-col gap-5 pt-5">
