@@ -16,24 +16,24 @@ module dona_pay::DonaPayCore {
       user: User
    }
 
-   struct PersonalLedger has store, copy, drop {
-    addr: address,                // Address of the person this ledger belongs to
-    balances: Table<address, u64>, // Tracks amounts owed to/from other group members
-}
+//    struct PersonalLedger has store, copy, drop {
+//     addr: address,                // Address of the person this ledger belongs to
+//     balances: Table<address, u64>, // Tracks amounts owed to/from other group members
+// }
 
-   struct Transaction has store, copy, drop {
-    id: u64,                   // Unique ID of the transaction
-    description: String,        // Description of the transaction (e.g., "Dinner bill")
-    payer: address,             // Address of the user who paid
-    amount: u64,                // Total amount of the transaction
-    split_amount: u64,          // Amount each member owes (after splitting)            
-}
+//    struct Transaction has store, copy, drop {
+//     id: u64,                   // Unique ID of the transaction
+//     description: String,        // Description of the transaction (e.g., "Dinner bill")
+//     payer: address,             // Address of the user who paid
+//     amount: u64,                // Total amount of the transaction
+//     split_amount: u64,          // Amount each member owes (after splitting)            
+// }
 
-   struct GroupLedger has store, copy, drop {
-    personal_ledgers: vector<PersonalLedger>, // Maps each member's address to their personal ledger
-    transactions: vector<Transaction>,                // List of all transactions in the group
-    total_balance: u64,                               // Total outstanding balance for the group
-}
+//    struct GroupLedger has store, copy, drop {
+//     personal_ledgers: vector<PersonalLedger>, // Maps each member's address to their personal ledger
+//     transactions: vector<Transaction>,                // List of all transactions in the group
+//     total_balance: u64,                               // Total outstanding balance for the group
+// }
 
 
    struct Group has store, copy, drop {
@@ -96,19 +96,37 @@ module dona_pay::DonaPayCore {
 
    #[view]
    public fun get_user_groups(addr: address): vector<Group> acquires Users, Groups {
-    let user_groups = borrow_global<Users>(addr).user.groups;
-    let result: vector<Group> = vector::empty<Group>();
+      let user_groups = borrow_global<Users>(addr).user.groups;
+      let result: vector<Group> = vector::empty<Group>();
 
-    let length = vector::length(&user_groups);
-    let i = 0;
-    while (i < length) {
-        let group_id = *vector::borrow(&user_groups, i);
-        let group = *table::borrow<u64, Group>(&borrow_global<Groups>(@dona_pay).allGroups, group_id);
-        vector::push_back(&mut result, group);
-        i = i + 1;
-    };
-    result 
-}
+      let length = vector::length(&user_groups);
+      let i = 0;
+      while (i < length) {
+         let group_id = *vector::borrow(&user_groups, i);
+         let group = *table::borrow<u64, Group>(&borrow_global<Groups>(@dona_pay).allGroups, group_id);
+         vector::push_back(&mut result, group);
+         i = i + 1;
+      };
+      result 
+   }
+
+   #[view]
+   public fun getUsersByArray(addrs: vector<address>): vector<User> acquires Users {
+      let result: vector<User> = vector::empty<User>();
+
+      // Iterate over each address
+      let length = vector::length(&addrs);
+      let i = 0;
+
+      while (i < length) {
+         let addr = vector::borrow(&addrs, i); 
+         let user = borrow_global<Users>(*addr).user; 
+         vector::push_back(&mut result, user);
+         i = i + 1; 
+      };
+
+      result
+   }
 
 
    public entry fun createGroup(account: &signer, group_name: String) acquires Groups, Users {

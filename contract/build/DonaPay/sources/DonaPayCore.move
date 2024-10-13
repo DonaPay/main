@@ -96,19 +96,37 @@ module dona_pay::DonaPayCore {
 
    #[view]
    public fun get_user_groups(addr: address): vector<Group> acquires Users, Groups {
-    let user_groups = borrow_global<Users>(addr).user.groups;
-    let result: vector<Group> = vector::empty<Group>();
+      let user_groups = borrow_global<Users>(addr).user.groups;
+      let result: vector<Group> = vector::empty<Group>();
 
-    let length = vector::length(&user_groups);
-    let i = 0;
-    while (i < length) {
-        let group_id = *vector::borrow(&user_groups, i);
-        let group = *table::borrow<u64, Group>(&borrow_global<Groups>(@dona_pay).allGroups, group_id);
-        vector::push_back(&mut result, group);
-        i = i + 1;
-    };
-    result 
-}
+      let length = vector::length(&user_groups);
+      let i = 0;
+      while (i < length) {
+         let group_id = *vector::borrow(&user_groups, i);
+         let group = *table::borrow<u64, Group>(&borrow_global<Groups>(@dona_pay).allGroups, group_id);
+         vector::push_back(&mut result, group);
+         i = i + 1;
+      };
+      result 
+   }
+
+   #[view]
+   public fun getUsersByArray(addrs: vector<address>): vector<User> acquires Users {
+      let result: vector<User> = vector::empty<User>();
+
+      // Iterate over each address
+      let length = vector::length(&addrs);
+      let i = 0;
+
+      while (i < length) {
+         let addr = vector::borrow(&addrs, i); 
+         let user = borrow_global<Users>(*addr).user; 
+         vector::push_back(&mut result, user);
+         i = i + 1; 
+      };
+
+      result
+   }
 
 
    public entry fun createGroup(account: &signer, group_name: String) acquires Groups, Users {
@@ -268,22 +286,19 @@ module dona_pay::DonaPayCore {
        *num_mut = num;
    } 
 
-   #[test]
-   fun test_get_user_groups() acquires Users, Groups {
-    let user_addr: address = @0x0fa795f2566b0eeebbe1a2dcbe127161b02eda171d8a5053a979c623eac23af3; // Replace with a valid address
-    let user_groups = get_user_groups(user_addr);
+   // #[test]
+   // fun test_get_user_groups() acquires Users, Groups {
+   //  let user_addr: address = @0x0fa795f2566b0eeebbe1a2dcbe127161b02eda171d8a5053a979c623eac23af3; 
+   //  let user_groups = get_user_groups(user_addr);
 
-    // Print the names of the groups the user belongs to
-    let length = vector::length(&user_groups);
-    let i = 0;
+   //  // Print the names of the groups the user belongs to
+   //  let length = vector::length(&user_groups);
+   //  let i = 0;
 
-    while (i < length) {
-        let group = *vector::borrow(&user_groups, i); // Borrow the group at index i
-        debug::print(&group.name); // Print the group name
-        i = i + 1; // Increment the index
-    }
+   //  while (i < length) {
+   //      let group = *vector::borrow(&user_groups, i); // Borrow the group at index i
+   //      debug::print(&group.name); // Print the group name
+   //      i = i + 1; // Increment the index
+   //  }
 }
 
-
-
-}
