@@ -19,60 +19,63 @@ function Application() {
     }, [user])
 
 
-    // const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     setName(e.target.value);
-    // };
+  // const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //     setName(e.target.value);
+  // };
 
-    // const handlePhotoUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     setPhotoUrl(e.target.value);
-    // };
+  // const handlePhotoUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //     setPhotoUrl(e.target.value);
+  // };
 
-    // const handleGroupNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     setGroupName(e.target.value);
-    // };
+//   const handleGroupNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     setGroupName(e.target.value);
+//   };
 
-    // const handleGroupIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     setGroupid(Number(e.target.value));
-    // };
+  // const handleGroupIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //     setGroupid(Number(e.target.value));
+  // };
 
-    // const handleCreateUser = async () => {
-    //     if (!connected || !account) {
-    //         console.error("Wallet not connected or account missing");
-    //         return;
-    //     }
+  // const handleCreateUser = async () => {
+  //     if (!connected || !account) {
+  //         console.error("Wallet not connected or account missing");
+  //         return;
+  //     }
 
-    //     const transaction = await CreateUser(name, photoUrl);
-    //     const txn = await signAndSubmitTransaction(transaction as any);
-    //     console.log(txn);
-    //     return txn;
-    // };
+  //     const transaction = await CreateUser(name, photoUrl);
+  //     const txn = await signAndSubmitTransaction(transaction as any);
+  //     console.log(txn);
+  //     return txn;
+  // };
 
-    // const handleCreateGroup = async () => {
-    //     if (!connected || !account) {
-    //         console.error("Wallet not connected or account missing");
-    //         return;
-    //     }
-    //     const transaction = await CreateGroup(groupName);
-    //     const txn = await signAndSubmitTransaction(transaction as any);
-    //     console.log(txn);
-    //     return txn;
-    // };
+  //   const handleCreateGroup = async () => {
+  //     if (!connected || !account) {
+  //       console.error("Wallet not connected or account missing");
+  //       return;
+  //     }
+  //     const transaction = await CreateGroup(groupName);
+  //     const txn = await signAndSubmitTransaction(transaction as any);
+  //     console.log(txn.hash);
+  //     const txnStatus = await aptosClient().waitForTransaction({ transactionHash: txn.hash });
 
+  //     // Log the transaction status or handle accordingly
+  //     if (txnStatus.success) {
+  //       console.log("Transaction confirmed successfully:", txnStatus);
+  //     } else {
+  //       console.error("Transaction failed:", txnStatus);
+  //     }
 
+  //     return txn.hash;
+  //   };
 
-    // const handleGetGroup = async () => {
-    //     if (!connected || !account) {
-    //         console.error("Wallet not connected or account missing");
-    //         return;
-    //     }
+  // const handleGetGroup = async () => {
+  //     if (!connected || !account) {
+  //         console.error("Wallet not connected or account missing");
+  //         return;
+  //     }
 
-    //     const fetchedGroup = await getGroupStruct(groupid);
-    //     console.log(fetchedGroup);
-    // };
-
-    // useEffect(() => {
-    //     console.log("first", user)
-    // },[user])
+  //     const fetchedGroup = await getGroupStruct(groupid);
+  //     console.log(fetchedGroup);
+  // };
 
     return (
         <div className="fixed bg-gray-100 dark:bg-neutral-800 text-black dark:text-white flex w-full min-h-[100vh]">
@@ -93,8 +96,6 @@ function Application() {
 }
 
 export default Application;
-
-
 
 // <>
 //   <div className="flex items-center justify-center flex-col gap-5 pt-5">
