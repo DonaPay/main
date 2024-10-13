@@ -4,7 +4,7 @@ version = "1.0.0"
 authors = []
 
 [addresses]
-dona_pay = "071af5095e2ec809ce2998185f802ee2d4d936401614cc71a3987cc5a341a5ff"
+dona_pay = "094468b85e81bafd35d320a3a8f8dcc4269635368cfa807d534405eee6e0e58a"
 
 [dependencies]
 AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", rev = "mainnet", subdir = "aptos-move/framework/aptos-framework" }
