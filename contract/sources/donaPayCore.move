@@ -34,6 +34,12 @@ module dona_pay::DonaPayCore {
 //     total_balance: u64,                               // Total outstanding balance for the group
 // }
 
+   struct I64 has store, copy, drop {
+      isNegative: bool,
+      value: u64
+   }
+
+   // struct Table<address, I64> has store, copy, drop
 
    struct Group has store, copy, drop {
       id: u64,
@@ -41,11 +47,11 @@ module dona_pay::DonaPayCore {
       admins: vector<address>,
       members: vector<address>,
       joinRequests: vector<address>,
-      imageUrl: String
-      // ledger: GroupLedger // Each group has a ledger
+      imageUrl: String,
+      ledger: Table<address, I64> 
    }
 
-   struct Groups has key{
+   struct Groups has key {
       allGroups: Table<u64, Group>,
       curr_id: u64,
    }
@@ -60,6 +66,7 @@ module dona_pay::DonaPayCore {
    const PERMISSION_DENIED: u64 = 105;
    const MEMBER_NOT_PRESENT : u64 = 110;
    const MEMBER_ALREADY_PRESENT: u64 = 111;
+   const LEDGER_MUST_BALANCE: u64 = 150;
 
 
    // This function is only called once when the module is published for the first time.
@@ -174,16 +181,14 @@ module dona_pay::DonaPayCore {
          admins: admins,
          members: members,
          joinRequests: join_requests,
-         imageUrl:imageUrl
+         imageUrl:imageUrl,
+         ledger: table::new<address, I64>()
       };
 
       vector::push_back<u64>(&mut borrow_global_mut<Users>(creator).user.groups, group_id);
 
       table::add<u64, Group>(&mut group_mut.allGroups, group_id, new_group);
    }
-
-   
-
    
    public entry fun approve_group_join(account: &signer, group_id: u64, member_addr: address) acquires Groups, Users {
       let admin_addr = signer::address_of(account);
@@ -208,44 +213,81 @@ module dona_pay::DonaPayCore {
       vector::push_back<u64>(&mut borrow_global_mut<Users>(member_addr).user.groups, group_id);
    }
 
-   //    public entry fun split_expense(
-   //    account: &signer, 
-   //    group_id: u64, 
-   //    total_amount: u64, 
-   //    participants: vector<address>
-   // ) acquires Groups {
-         
-   //    let addr = signer::address_of(account);
-      
-   //    // Borrow the group
-   //    let group = &mut table::borrow_mut<u64, Group>(&mut borrow_global_mut<Groups>(@dona_pay).allGroups, group_id);
-      
-   //    // Ensure the caller is a member of the group
-   //    assert!(vector::contains<address>(&group.members, &addr), PERMISSION_DENIED);
-      
-   //    // Split the amount equally among the participants
-   //    let num_participants = vector::length<address>(&participants);
-   //    let split_amount = total_amount / num_participants;
+// Function to update participant's debt in the group's ledger
+fun update_ledger(
+    ledger: &mut Table<address, I64>,
+    split_data: &Table<address, I64>,
+    participant: address
+) {
+    let expense = *table::borrow(split_data, participant);
+    if (table::contains(ledger, participant)) {
+        let current_debt = table::borrow_mut(ledger, participant);
+        *current_debt = addNums(*current_debt, expense);
+    } else {
+        // Add a new debt entry for the participant
+        table::add(ledger, participant, expense);
+    }
+}
 
-   //    // Borrow the group ledger
-   //    let ledger = &mut group.ledger.debts;
-      
-   //    // Add debt entries for each participant except the caller
-   //    for participant in participants {
-   //       if (participant != addr) { // Skip the caller
-   //             // Borrow or create a nested table for each participant (debtor)
-   //             let creditor_table = table::borrow_with_default_mut<address, Table<address, u64>>(
-   //                ledger, 
-   //                participant, 
-   //                table::new<address, u64>()
-   //             );
+public entry fun split_expense(
+    account: &signer,
+    group_id: u64,
+    participants: vector<address>,
+    split_data: Table<address, I64>
+) acquires Groups {
+    let addr = signer::address_of(account);
+    // Borrow the group
+    let groups = borrow_global_mut<Groups>(@dona_pay);
+    let group = table::borrow_mut(&mut groups.allGroups, group_id);
+    // Ensure the caller is a member of the group
+    assert!(vector::contains(&group.members, &addr), PERMISSION_DENIED);
+    // Borrow the group ledger
+    let ledger = &mut group.ledger;
+    // Iterate through participants and apply the update_ledger function
+    let i = 0;
+    let len = vector::length(&participants);
+    while (i < len) {
+        let participant = *vector::borrow(&participants, i);
+        update_ledger(ledger, &split_data, participant);
+        i = i + 1;
+    };
+    // Ensure that total debt equals the creator's surplus
+    let is_valid = isLedgerValid(ledger, &group.members);
+    assert!(is_valid, LEDGER_MUST_BALANCE);
+}
 
-   //             // Update the debt amount for the caller (as the creditor)
-   //             let current_debt = table::borrow_with_default_mut<address, u64>(creditor_table, addr, 0);
-   //             *current_debt = *current_debt + split_amount;
-   //       }
-   //    }
-   // }
+/// Checks if the ledger is in a valid state (sum of all debts and lends must be zero)
+public fun isLedgerValid(ledger: &Table<address, I64>, members: &vector<address>): bool {
+    let net_balance = I64 { isNegative: false, value: 0 };
+    let i = 0;
+    let len = vector::length(members);
+    while (i < len) {
+        let member = *vector::borrow(members, i);
+        let balance = table::borrow(ledger, member);
+        net_balance = addNums(net_balance, *balance);
+        i = i + 1;
+    };
+    // The ledger is valid if the net balance is zero (debts and lends cancel each other out)
+    net_balance.value == 0
+}
+
+// Helper function to add two I64 numbers
+fun addNums(a: I64, b: I64): I64 {
+    if (a.isNegative == b.isNegative) {
+        // If both numbers have the same sign, add their values
+        I64 { isNegative: a.isNegative, value: a.value + b.value }
+    } else {
+        // If the signs are different, subtract the smaller value from the larger
+        if (a.value > b.value) {
+            I64 { isNegative: a.isNegative, value: a.value - b.value }
+        } else if (a.value < b.value) {
+            I64 { isNegative: b.isNegative, value: b.value - a.value }
+        } else {
+            // If the values are equal but signs are different, the result is zero
+            I64 { isNegative: false, value: 0 }
+        }
+    }
+}
 
    // public entry fun settle_debt(
    //    account: &signer, 
