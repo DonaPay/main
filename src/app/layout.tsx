@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { WalletProvider } from "@/components/WalletProvider";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "sonner";
 import { WrongNetworkAlert } from "@/components/WrongNetworkAlert";
 import { ThemeProvider } from "next-themes";
-
 
 import "./globals.css";
 import { GlobalProvider } from "@/GlobalProvider";
@@ -21,9 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <WalletProvider>
             <GlobalProvider>
-              <div id="root">
-                {children}
-              </div>
+              <div id="root">{children}</div>
               <WrongNetworkAlert />
               <Toaster />
             </GlobalProvider>

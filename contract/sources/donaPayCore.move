@@ -299,3 +299,12 @@ module dona_pay::DonaPayCore {
 
 }
 
+// -ve = debt
+//  +ve = surplus
+
+// add1: -50 + 30 = -20
+// add2: +30 - 30 = 0
+// add3: +20
+// 4: -100
+// 5: +100
+

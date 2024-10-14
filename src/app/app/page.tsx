@@ -16,27 +16,26 @@ function Application() {
   const { account } = useWallet();
   const [section, setSection] = useState<string>("");
   const [group, setGroup] = useState<Group | null>(null);
-
   const { user, loading } = useGlobalContext();
 
-    const searchParams = useSearchParams()
-    const urlGroupId = searchParams.get('groupId')
-
-    useEffect(() => {
-        if (urlGroupId) {
-           setSection("join-group")
-        }
-    }, [urlGroupId])
+  const searchParams = useSearchParams();
+  const urlGroupId = searchParams.get("groupId");
 
   useEffect(() => {
-    console.log("loading",loading)
-      console.log("account", account)
-    console.log("user",user)
-    console.log("section",section)
-      if (!loading && account && user == null){
-        setSection("create-profile");
-    } 
-  }, [user, loading, account]);
+    if (urlGroupId) {
+      setSection("join-group");
+    }
+  }, [urlGroupId]);
+
+  useEffect(() => {
+    console.log("loading", loading);
+    console.log("account", account);
+    console.log("user", user);
+    console.log("section", section);
+    if (!loading && account && user == null) {
+      setSection("create-profile");
+    }
+  }, [user, loading, account, section, setSection]);
 
   // const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   //     setName(e.target.value);
@@ -108,15 +107,15 @@ function Application() {
         <Sidebar section={section} setSection={setSection} setGroup={setGroup} group={group} />
       </div>
       <div className="w-full">
-        <SectionHeader group={group} section={section} setSection={setSection}/>
-            {section == "create-profile" && <CreateProfile />}
-            {section == "create-group" && <CreateGroup />}
-            {section == "group" && group  && <GroupChat group={group} />}
-              <Suspense fallback={<div></div>}>
-                  {/* Now the component using useSearchParams is inside Suspense */}
-                  {section === "join-group" && <JoinGroup />}
-              </Suspense>
-            {section == "group-details" && group  && <GroupDetails group={group} />}
+        <SectionHeader group={group} section={section} setSection={setSection} />
+        {section == "create-profile" && <CreateProfile />}
+        {section == "create-group" && <CreateGroup />}
+        {section == "group" && group && <GroupChat group={group} />}
+        <Suspense fallback={<div></div>}>
+          {/* Now the component using useSearchParams is inside Suspense */}
+          {section === "join-group" && <JoinGroup />}
+        </Suspense>
+        {section == "group-details" && group && <GroupDetails group={group} />}
       </div>
     </div>
   );
