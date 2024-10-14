@@ -1,27 +1,42 @@
 "use client";
 import CreateProfile from "@/components/create-profile/CreateProfile";
+import CreateGroup from "@/components/CreateGroup/CreateGroup";
 import GroupChat from "@/components/GroupChat/GroupChat";
+import GroupDetails from "@/components/GroupDetails/GroupDetails";
+import JoinGroup from "@/components/JoinGroup/JoinGroup";
+import SectionHeader from "@/components/SectionHeader/SectionHeader";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { useGlobalContext } from "@/GlobalProvider";
+import { Group } from "@/GlobalTypes";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
 function Application() {
-  const { connected } = useWallet();
+  const { account } = useWallet();
   const [section, setSection] = useState<string>("");
-  const [groupId, setGroupId] = useState<string>("");
+  const [group, setGroup] = useState<Group | null>(null);
 
   const { user, loading } = useGlobalContext();
 
+    const searchParams = useSearchParams()
+    const urlGroupId = searchParams.get('groupId')
+
+    useEffect(() => {
+        if (urlGroupId) {
+           setSection("join-group")
+        }
+    }, [urlGroupId])
+
   useEffect(() => {
     console.log("loading",loading)
-    console.log("connected",connected)
+      console.log("account", account)
     console.log("user",user)
     console.log("section",section)
-    if (!loading && connected && user == null){
+      if (!loading && account && user == null){
         setSection("create-profile");
     } 
-  }, [user, loading, connected, section]);
+  }, [user, loading, account]);
 
   // const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   //     setName(e.target.value);
@@ -90,12 +105,18 @@ function Application() {
         className="bg-gray-200 dark:bg-neutral-900 text-black dark:text-white  
             min-w-[20%] flex flex-col p-4 md:p-6 gap-4"
       >
-        <Sidebar section={section} setSection={setSection} setGroupId={setGroupId} groupId={groupId} />
+        <Sidebar section={section} setSection={setSection} setGroup={setGroup} group={group} />
       </div>
-      <div className="w-full p-4 md:p-6">
+      <div className="w-full">
+        <SectionHeader group={group} section={section} setSection={setSection}/>
             {section == "create-profile" && <CreateProfile />}
-
-        {section == "group" && <GroupChat groupId={groupId} />}
+            {section == "create-group" && <CreateGroup />}
+            {section == "group" && group  && <GroupChat group={group} />}
+              <Suspense fallback={<div></div>}>
+                  {/* Now the component using useSearchParams is inside Suspense */}
+                  {section === "join-group" && <JoinGroup />}
+              </Suspense>
+            {section == "group-details" && group  && <GroupDetails group={group} />}
       </div>
     </div>
   );

@@ -1,9 +1,10 @@
 import { aptosClient } from "@/utils/aptosClient";
 import { PUBLISHER_ADDRESS } from "@/constants";
+import { Group } from "@/GlobalTypes";
 
 export const getGroupStruct = async (id: number) => {
   try {
-    const group = await aptosClient().view<[string]>({
+    const group = await aptosClient().view<[Group]>({
       payload: {
         function: `${PUBLISHER_ADDRESS}::DonaPayCore::get_group`,
         typeArguments: [],
@@ -11,7 +12,7 @@ export const getGroupStruct = async (id: number) => {
       },
     });
 
-    return group;
+    return group[0];
   } catch (error: any) {
     if (error.message.includes("4")) {
       console.error("Error: Group not found with the given ID.");

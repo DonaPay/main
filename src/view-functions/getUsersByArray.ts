@@ -1,9 +1,10 @@
 import { aptosClient } from "@/utils/aptosClient";
 import { PUBLISHER_ADDRESS } from "@/constants";
+import { User } from "@/GlobalTypes";
 
 export const getUsersByArray = async (addresses: string[]) => {
   try {
-    const users = await aptosClient().view<[string[]]>({
+    const users = await aptosClient().view<[User[]]>({
       payload: {
         function: `${PUBLISHER_ADDRESS}::DonaPayCore::getUsersByArray`,
         typeArguments: [],

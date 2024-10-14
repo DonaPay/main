@@ -1,6 +1,5 @@
 import { aptosClient } from "@/utils/aptosClient";
 import { PUBLISHER_ADDRESS } from "@/constants";
-import { User } from "@/GlobalTypes";
 // const aptos = new Aptos();
 
 export const getUserStruct = async (address: string) => {

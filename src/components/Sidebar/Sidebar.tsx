@@ -11,19 +11,13 @@ import {
 } from "@/components/ui/tooltip"
 import { SideBarPropsType } from './types'
 import { Group } from '@/GlobalTypes'
+import { AddressDisplay } from '@/utils/addressUtility'
 
 
 
-const Sidebar = ({ section, setSection, setGroupId, groupId }: SideBarPropsType) => {
+const Sidebar = ({ section, setSection, setGroup, group }: SideBarPropsType) => {
 
     const { user, loading, groups } = useGlobalContext()
-
-    const handleAddGroup = () => {
-        setSection("add-group")
-    }
-    const handleJoinGroup = () => {
-        setSection("join-group")
-    }
 
     return (
         <div className='h-full flex gap-4 flex-col justify-between text-black dark:text-white'>
@@ -33,11 +27,11 @@ const Sidebar = ({ section, setSection, setGroupId, groupId }: SideBarPropsType)
                 <div className='text-lg '>
                     Groups
                 </div>
-                <div className='flex gap-2'>
+                {user && <div className='flex gap-2'>
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Plus onClick={handleAddGroup} className='bg-transparent rounded-full' height={20} width={20} />
+                                <Plus onClick={() => setSection("create-group")} className='bg-transparent rounded-full' height={20} width={20} />
                             </TooltipTrigger>
                             <TooltipContent className='text-[12px]'>
                                 <p className=''>Create Group</p>
@@ -47,42 +41,43 @@ const Sidebar = ({ section, setSection, setGroupId, groupId }: SideBarPropsType)
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <UsersRound onClick={handleJoinGroup} className='bg-transparent rounded-full' height={20} width={20} />
+                                <UsersRound onClick={() => setSection("join-group")} 
+                                className='bg-transparent rounded-full' height={20} width={20} />
                             </TooltipTrigger>
                             <TooltipContent className='text-[12px]'>
                                 <p className=''>Join Group</p>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
-                </div>
+                </div>}
             </div>
 
             {/* groups  */}
             <div className='flex flex-grow flex-col gap-4 overflow-y-scroll'>
                 {groups.length == 0 && Array.from({ length: 6 }, (_, index) => (
-                    <div className="flex items-center space-x-4 w-full" key={index}>
-                        <Skeleton className="min-h-12 min-w-12 rounded-full" />
+                    <div className="flex items-center space-x-4 w-full " key={index}>
+                        <Skeleton className="min-h-12 min-w-12 rounded-full bg-gray-200 dark:bg-neutral-700" />
                         <div className="space-y-2 w-full">
-                            <Skeleton className="h-4 max-w-full" />
-                            <Skeleton className="h-4 max-w-full" />
+                            <Skeleton className="h-4 max-w-full bg-gray-200 dark:bg-neutral-700" />
+                            <Skeleton className="h-4 max-w-full bg-gray-200 dark:bg-neutral-700" />
                         </div>
                     </div>))}
                 {groups && !loading && (
-                    groups.map((group: Group) => {
+                    groups.map((_group: Group) => {
                         return (
-                            <div key={group.id} className={`flex items-center gap-2 w-full rounded-md 
-                                ${section == "group" && groupId == group.id ? "bg-gray-100 dark:bg-neutral-800" :"" }`} 
+                            <div key={_group.id} className={`flex items-center gap-2 w-full rounded-md 
+                                ${section == "group" && _group == group ? "bg-gray-100 dark:bg-neutral-800" :"" }`} 
                             onClick={() => {
                                 setSection("group");
-                                setGroupId(group.id)
+                                setGroup(_group)
                                 }}>
                                 <Avatar className="min-h-12 min-w-12 rounded-full">
-                                    <AvatarImage src={group?.photo} alt={group?.name} />
-                                    <AvatarFallback>{group?.name.charAt(0)}</AvatarFallback>
+                                    <AvatarImage src={_group?.photo} alt={_group?.name} className='bg-gray-200 dark:bg-neutral-700'/>
+                                    <AvatarFallback className='bg-gray-200 dark:bg-neutral-700'>{_group?.name.charAt(0).toLocaleUpperCase()}</AvatarFallback>
                                 </Avatar>
                                 <div className="w-full font-light text-sm">
-                                    <div>{group.name}</div>
-                                    <div>{group.members.length} members</div>
+                                    <div>{_group.name} </div>
+                                    <div className='text-neutral-800 dark:text-neutral-400'>{_group.members.length} members</div>
                                 </div>
                             </div>
                         );
@@ -93,19 +88,19 @@ const Sidebar = ({ section, setSection, setGroupId, groupId }: SideBarPropsType)
             {/* Footer  */}
 
             <div className='w-full'>
-                {!user && <div className="flex items-center gap-2 w-full">
+                {user == null && loading && <div className="flex items-center gap-2 w-full">
                     <div className="flex items-center space-x-4 w-full">
-                        <Skeleton className="min-h-12 min-w-12 rounded-full" />
+                        <Skeleton className="min-h-12 min-w-12 rounded-full bg-gray-200 dark:bg-neutral-700" />
                         <div className="space-y-2 w-full">
-                            <Skeleton className="h-4 max-w-full" />
-                            <Skeleton className="h-4 max-w-full" />
+                            <Skeleton className="h-4 max-w-full bg-gray-200 dark:bg-neutral-700" />
+                            <Skeleton className="h-4 max-w-full bg-gray-200 dark:bg-neutral-700" />
                         </div>
                     </div>
                 </div>}
                 {user && <div className="flex items-center gap-2 w-full">
-                    <Avatar className="min-h-12 min-w-12 rounded-full">
-                        <AvatarImage src={user?.photoUrl} alt="@shadcn" />
-                        <AvatarFallback>{user?.name.charAt(0)}</AvatarFallback>
+                    <Avatar className="min-h-12 min-w-12 rounded-full bg-gray-200 dark:bg-neutral-700">
+                        <AvatarImage src={user?.photoUrl} alt={user.name} className='bg-gray-200 dark:bg-neutral-700'/>
+                        <AvatarFallback className='bg-gray-200 dark:bg-neutral-700'>{user?.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="w-full font-light text-sm">
                         <div>{user.name}</div>
@@ -117,25 +112,6 @@ const Sidebar = ({ section, setSection, setGroupId, groupId }: SideBarPropsType)
 
     )
 }
-const truncateAddress = (address: string, maxLength: number) => {
-    if (address.length <= maxLength) {
-        return address; // Return the full address if it's shorter than the maximum length
-    }
 
-    const charsToShow = maxLength - 5; // 5 accounts for '0x...' and the ellipsis ('...')
-    const front = Math.floor(charsToShow / 2); // Show half characters from the front
-    const back = Math.ceil(charsToShow / 2); // Show the remaining characters from the back
-
-    return `${address.slice(0, front)}...${address.slice(-back)}`;
-};
-
-// Example usage in a React component
-const AddressDisplay = ({ address, maxLength }: { address: string, maxLength: number }) => {
-    return (
-        <p>
-            {truncateAddress(address, maxLength)}
-        </p>
-    );
-};
 
 export default Sidebar

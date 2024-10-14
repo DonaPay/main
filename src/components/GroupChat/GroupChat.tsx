@@ -1,10 +1,10 @@
 import React from 'react'
 import { GroupChatPropstype } from './types'
 
-const GroupChat = ({ groupId }: GroupChatPropstype) => {
+const GroupChat = ({ group }: GroupChatPropstype) => {
     return (
-        <div className='w-full h-full'>
-            GroupChat {groupId}
+        <div className='w-full h-full p-4'>
+            {group.name}
         </div>
     )
 }

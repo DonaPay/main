@@ -23,12 +23,11 @@ function App() {
         </div>
 
         <div className="flex gap-4 mt-6">
-          <Link href={"/dashboard"}>
+          <Link href={"/app"}>
             <HoverBorderGradient
               containerClassName="rounded-full"
               as="button"
               className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2"
-              // onClick={() => connect()}
               >
               <span>Start Spending</span>
             </HoverBorderGradient>

@@ -30,36 +30,45 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     const { account, connected } = useWallet();
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchUserData = async () => {
             if (!connected || !account) {
                 console.error("Wallet not connected or account missing");
-                setLoading(false);
                 return;
             }
 
             setLoading(true);
 
             try {
+                // Fetch user data
                 const fetchedUser = await getUserStruct(account.address);
-                console.log("User", fetchedUser);
 
-                // const fetchedGroups = await getUserGroupStruct(fetchedUser.) 
+                if (fetchedUser && fetchedUser[0]) {
+                    setUser(fetchedUser[0] as User);
 
-                if (fetchedUser && fetchedUser) {
-                    setUser(fetchedUser);
+                    // Fetch groups only if user is fetched successfully
+                    const fetchedGroups = await getUserGroupStruct(account.address);
+
+                    if (fetchedGroups) {
+                        setGroups(fetchedGroups as Group[]);
+                    } else {
+                        console.error("No groups data found");
+                        setGroups([]);
+                    }
                 } else {
                     console.error("No user data found");
                     setUser(null);
+                    setGroups([]);
                 }
             } catch (error) {
-                console.error("Error fetching user data:", error);
+                console.error("Error fetching user or groups data:", error);
                 setUser(null);
+                setGroups([]);
             } finally {
-                setLoading(false);
+                setLoading(false); // Set loading to false after both user and groups fetch complete
             }
         };
 
-        fetchData(); 
+        fetchUserData();
     }, [connected, account]);
 
     return (

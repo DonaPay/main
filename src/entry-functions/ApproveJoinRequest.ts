@@ -1,6 +1,6 @@
 import { PUBLISHER_ADDRESS } from "@/constants";
 
-export const JoinGroupRequest = async (groupId: number, memberAddress: string) => {
+export const ApproveJoinGroupRequest = async (groupId: number, memberAddress: string) => {
   try {
     const transaction = {
       data: {

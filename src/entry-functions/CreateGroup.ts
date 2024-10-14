@@ -1,11 +1,11 @@
 import { PUBLISHER_ADDRESS } from "@/constants";
 
-export const CreateGroup = async (name: string) => {
+export const createGroup = async (name: string, ImageUrl: string) => {
   try {
     const transaction = {
       data: {
         function: `${PUBLISHER_ADDRESS}::DonaPayCore::createGroup`,
-        functionArguments: [name],
+        functionArguments: [name, ImageUrl],
       },
     };
 

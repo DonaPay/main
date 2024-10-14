@@ -1,3 +1,5 @@
+import { Group } from "@/GlobalTypes"
+
 export type GroupChatPropstype = {
-    groupId: string
+    group: Group
 }

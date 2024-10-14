@@ -41,6 +41,7 @@ module dona_pay::DonaPayCore {
       admins: vector<address>,
       members: vector<address>,
       joinRequests: vector<address>,
+      imageUrl: String
       // ledger: GroupLedger // Each group has a ledger
    }
 
@@ -145,11 +146,11 @@ module dona_pay::DonaPayCore {
       let addr = signer::address_of(account);
       let groups = &mut borrow_global_mut<Groups>(@dona_pay).allGroups;
       let group = table::borrow_mut(groups,group_id);
-      assert!(vector::contains<address>(&group.members, &addr) == false, 111);
+      assert!(vector::contains<address>(&group.members, &addr) == false, MEMBER_ALREADY_PRESENT);
       vector::push_back(&mut group.joinRequests, addr);
    }
 
-   public entry fun createGroup(account: &signer, group_name: String) acquires Groups, Users {
+   public entry fun createGroup(account: &signer, group_name: String, imageUrl: String) acquires Groups, Users {
       // init_module(account);
       let creator = signer::address_of(account);
 
@@ -172,7 +173,8 @@ module dona_pay::DonaPayCore {
          name: group_name,
          admins: admins,
          members: members,
-         joinRequests: join_requests
+         joinRequests: join_requests,
+         imageUrl:imageUrl
       };
 
       vector::push_back<u64>(&mut borrow_global_mut<Users>(creator).user.groups, group_id);
