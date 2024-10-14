@@ -296,20 +296,6 @@ module dona_pay::DonaPayCore {
        *num_mut = num;
    } 
 
-   // #[test]
-   // fun test_get_user_groups() acquires Users, Groups {
-   //  let user_addr: address = @0x0fa795f2566b0eeebbe1a2dcbe127161b02eda171d8a5053a979c623eac23af3; 
-   //  let user_groups = get_user_groups(user_addr);
-
-   //  // Print the names of the groups the user belongs to
-   //  let length = vector::length(&user_groups);
-   //  let i = 0;
-
-   //  while (i < length) {
-   //      let group = *vector::borrow(&user_groups, i); // Borrow the group at index i
-   //      debug::print(&group.name); // Print the group name
-   //      i = i + 1; // Increment the index
-   //  }
 
 }
 
