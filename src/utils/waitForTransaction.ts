@@ -1,4 +1,3 @@
-import { getUserGroupStruct } from "@/view-functions/getUserGroupStruct";
 import { aptosClient } from "./aptosClient";
 
 export const waitForTransactionConfirmation = async (txHash: any) => {
