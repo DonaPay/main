@@ -9,8 +9,8 @@ import "./globals.css";
 import { GlobalProvider } from "@/GlobalProvider";
 
 export const metadata: Metadata = {
-  title: "NextJS Boilerplate Template",
-  description: "NextJS Boilerplate Template is a...",
+  title: "Donapay",
+  description: "Group Expenses. With a Twist!",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
