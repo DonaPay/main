@@ -19,18 +19,19 @@ module dona_pay::DonaPayCore {
       votes : Table<address, u64>
    }
 
-    struct VoteLedgers has key {
+   struct VoteLedgers has key {
       allVoteLedgers : Table<u64, VoteLedger>
    }
 
    // state 0 -> inactive
    // state 1 -> active
-   struct Sabotage has store{
+   struct Sabotage has store, copy, drop{
+      id: u64,
       state : u64,
-      selected : address
+      selected : address,
    }
 
-    struct Sabotages has key {
+   struct Sabotages has key {
       allsabotages : Table<u64, Sabotage>,
       curr_id : u64
    }
@@ -61,6 +62,7 @@ module dona_pay::DonaPayCore {
    const MEMBER_NOT_PRESENT : u64 = 110;
    const MEMBER_ALREADY_PRESENT: u64 = 111;
    const LEDGER_MUST_BALANCE: u64 = 150;
+   const SABOTAGE_ID_MISMATCH: u64 = 160;
 
 
    // This function is only called once when the module is published for the first time.
@@ -225,6 +227,7 @@ module dona_pay::DonaPayCore {
       let curr_sabotage_id = global_sabotages.curr_id;
 
       let sabotage = Sabotage{
+         id: curr_sabotage_id,
          state : 1,
          selected : @dona_pay
       };
@@ -232,8 +235,35 @@ module dona_pay::DonaPayCore {
       table::add<u64, Sabotage>(&mut global_sabotages.allsabotages, curr_sabotage_id, sabotage );
 
       vector::push_back<u64>(&mut group.pastSabotages, curr_sabotage_id);
-
    }
+
+   #[view]
+   public fun get_group_past_sabotages(group_id: u64): vector<Sabotage> acquires Sabotages, Groups {
+      let group = table::borrow(&borrow_global<Groups>(@dona_pay).allGroups, group_id);
+      let sabotages_count = vector::length(&group.pastSabotages);
+      let sabotages = vector::empty<Sabotage>();
+      let i = 0;
+      while (i < sabotages_count) {
+         let sabotage_id = *vector::borrow(&group.pastSabotages, i);
+         let sabotage = *table::borrow(&borrow_global<Sabotages>(@dona_pay).allsabotages, sabotage_id);
+         vector::push_back(&mut sabotages, sabotage);
+         i = i + 1;
+      };
+      sabotages
+   }
+
+   public entry fun register_vote(account: &signer, group_id: u64, sabotage_id: u64, vote: address) acquires Groups, VoteLedgers {
+    let member_addr = signer::address_of(account);
+    let groups = borrow_global_mut<Groups>(@dona_pay);
+    let group = table::borrow_mut(&mut groups.allGroups, group_id);
+    assert!(vector::contains(&group.members, &member_addr), 110);
+    assert!(vector::contains(&group.pastSabotages, &sabotage_id), 160);
+    
+    let vote_ledgers = borrow_global_mut<VoteLedgers>(@dona_pay);
+    let vote_ledger = table::borrow_mut(&mut vote_ledgers.allVoteLedgers, sabotage_id);
+    let vote_count = table::borrow_mut(&mut vote_ledger.votes, vote);
+    *vote_count = *vote_count + 1;
+}
 
    #[view]
    public fun getRandomValue(): u64 acquires Random{
