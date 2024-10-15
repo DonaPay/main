@@ -7,6 +7,11 @@ import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
 import { AddressDisplay } from "@/utils/addressUtility";
 import { getUsersByArray } from "@/view-functions/getUsersByArray";
 import Link from "next/link";
+import { useGlobalContext } from "@/GlobalProvider";
+import { ApproveJoinGroupRequest } from "@/entry-functions/ApproveJoinRequest";
+import { toast } from "sonner";
+import { waitForTransactionConfirmation } from "@/utils/waitForTransaction";
+import { useWallet } from "@aptos-labs/wallet-adapter-react";
 
 const GroupDetails = ({ group }: { group: Group }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
@@ -14,7 +19,8 @@ const GroupDetails = ({ group }: { group: Group }) => {
   const [groupMembers, setGroupMembers] = useState<User[]>([]);
   const [groupJoinRequests, setGroupJoinRequests] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-
+  const { signAndSubmitTransaction } = useWallet();
+  const { user } = useGlobalContext();
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
   const linkUrl = `${baseUrl}/app/?groupId=${group.id}`;
 
@@ -26,24 +32,38 @@ const GroupDetails = ({ group }: { group: Group }) => {
       .catch((err) => {
         console.error(err);
       });
-
-    const fetchData = async () => {
-      setLoading(true); // Set loading to true before data fetching
-
-      const fetchedAdmins = await getUsersByArray(group.admins);
-      if (fetchedAdmins && fetchedAdmins.length > 0) setAdmins(fetchedAdmins as any);
-
-      const fetchedMembers = await getUsersByArray(group.members);
-      if (fetchedMembers && fetchedMembers.length > 0) setGroupMembers(fetchedMembers as any);
-
-      const fetchedJoinRequests = await getUsersByArray(group.joinRequests);
-      if (fetchedJoinRequests && fetchedJoinRequests.length > 0) setGroupJoinRequests(fetchedJoinRequests as any);
-
-      setLoading(false); // Set loading to false once all data is fetched
-    };
-
     fetchData();
   }, [group]);
+
+  const fetchData = async () => {
+    setLoading(true); // Set loading to true before data fetching
+
+    const fetchedAdmins = await getUsersByArray(group.admins);
+    if (fetchedAdmins && fetchedAdmins.length > 0) setAdmins(fetchedAdmins as any);
+    const fetchedMembers = await getUsersByArray(group.members);
+    if (fetchedMembers && fetchedMembers.length > 0) setGroupMembers(fetchedMembers as any);
+
+    const fetchedJoinRequests = await getUsersByArray(group.joinRequests);
+    if (fetchedJoinRequests && fetchedJoinRequests.length > 0) setGroupJoinRequests(fetchedJoinRequests as any);
+
+    setLoading(false); // Set loading to false once all data is fetched
+  };
+  const handleApproveRequest = async (groupMember: any) => {
+    console.log(groupMember.addr);
+    try {
+      const groupJoinObj = await ApproveJoinGroupRequest(Number(group.id), groupMember.addr);
+      const tx = await signAndSubmitTransaction(groupJoinObj as any);
+      console.log("Join Group request transaction", tx);
+      await fetchData();
+      return toast.promise(waitForTransactionConfirmation(tx.hash), {
+        loading: "Transaction in process",
+        success: "Group join request approved!",
+        error: "Group join request couldn't be approved!",
+      });
+    } catch (error: any) {
+      toast.error("Something went wrong", error);
+    }
+  };
 
   return (
     <div className="w-full h-full p-4 flex flex-col gap-4 overflow-y-scroll">
@@ -248,9 +268,22 @@ const GroupDetails = ({ group }: { group: Group }) => {
                     {groupMember?.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="w-full font-light text-sm">
-                  <div>{groupMember.name}</div>
-                  <AddressDisplay address={groupMember.addr} maxLength={25} />
+                <div className="w-full font-light text-sm flex flex-row gap-4">
+                  <div className="flex flex-col">
+                    {groupMember.name}
+                    <AddressDisplay address={groupMember.addr} maxLength={25} />
+                  </div>
+                  {admins.some((admin) => admin.addr === user?.addr) && (
+                    <button
+                      className="text-white rounded-xl p-2 bg-slate-400"
+                      onClick={() => {
+                        handleApproveRequest(groupMember);
+                      }}
+                      key={idx}
+                    >
+                      Approve request
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

@@ -48,7 +48,7 @@ module dona_pay::DonaPayCore {
    const MEMBER_NOT_PRESENT : u64 = 110;
    const MEMBER_ALREADY_PRESENT: u64 = 111;
    const LEDGER_MUST_BALANCE: u64 = 150;
-
+   const REQUEST_ALREADY_SENT: u64 = 200;
 
    // This function is only called once when the module is published for the first time.
    fun init_module(account: &signer) {
@@ -138,6 +138,7 @@ module dona_pay::DonaPayCore {
       let groups = &mut borrow_global_mut<Groups>(@dona_pay).allGroups;
       let group = table::borrow_mut(groups,group_id);
       assert!(vector::contains<address>(&group.members, &addr) == false, MEMBER_ALREADY_PRESENT);
+      assert!(vector::contains<address>(&group.joinRequests, &addr) == false, REQUEST_ALREADY_SENT);
       vector::push_back(&mut group.joinRequests, addr);
    }
 

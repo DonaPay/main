@@ -64,7 +64,7 @@ const JoinGroup = () => {
         error: "Group request sending failed!",
       });
     } catch (error: any) {
-      toast.error("You are already in this group");
+      toast.error("You are already in this group or you have sent request once");
     }
   };
 
