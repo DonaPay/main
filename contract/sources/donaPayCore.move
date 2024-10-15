@@ -15,31 +15,13 @@ module dona_pay::DonaPayCore {
       user: User
    }
 
-//    struct PersonalLedger has store, copy, drop {
-//     addr: address,                // Address of the person this ledger belongs to
-//     balances: Table<address, u64>, // Tracks amounts owed to/from other group members
-// }
-
-//    struct Transaction has store, copy, drop {
-//     id: u64,                   // Unique ID of the transaction
-//     description: String,        // Description of the transaction (e.g., "Dinner bill")
-//     payer: address,             // Address of the user who paid
-//     amount: u64,                // Total amount of the transaction
-//     split_amount: u64,          // Amount each member owes (after splitting)            
-// }
-
-//    struct GroupLedger has store, copy, drop {
-//     personal_ledgers: vector<PersonalLedger>, // Maps each member's address to their personal ledger
-//     transactions: vector<Transaction>,                // List of all transactions in the group
-//     total_balance: u64,                               // Total outstanding balance for the group
-// }
-
-   struct I64 has store, copy, drop {
-      isNegative: bool,
-      value: u64
+   struct VoteLedger has store{
+      votes : Table<address, u64>
    }
 
-   // struct Table<address, I64> has store, copy, drop
+    struct VoteLedgers has key {
+      allVoteLedgers : Table<u64, VoteLedger>
+   }
 
    struct Group has store, copy, drop {
       id: u64,
@@ -47,8 +29,7 @@ module dona_pay::DonaPayCore {
       admins: vector<address>,
       members: vector<address>,
       joinRequests: vector<address>,
-      imageUrl: String,
-      ledger: Table<address, I64> 
+      imageUrl: String
    }
 
    struct Groups has key {
@@ -74,6 +55,9 @@ module dona_pay::DonaPayCore {
       move_to(account, Groups {
          allGroups: table::new<u64, Group>(),
          curr_id: 0
+      });
+      move_to(account, VoteLedgers {
+         allVoteLedgers: table::new<u64, VoteLedger>()
       });
       move_to(account, Random {
          num: 0
@@ -182,7 +166,6 @@ module dona_pay::DonaPayCore {
          members: members,
          joinRequests: join_requests,
          imageUrl:imageUrl,
-         ledger: table::new<address, I64>()
       };
 
       vector::push_back<u64>(&mut borrow_global_mut<Users>(creator).user.groups, group_id);
@@ -213,115 +196,6 @@ module dona_pay::DonaPayCore {
       vector::push_back<u64>(&mut borrow_global_mut<Users>(member_addr).user.groups, group_id);
    }
 
-// Function to update participant's debt in the group's ledger
-fun update_ledger(
-    ledger: &mut Table<address, I64>,
-    split_data: &Table<address, I64>,
-    participant: address
-) {
-    let expense = *table::borrow(split_data, participant);
-    if (table::contains(ledger, participant)) {
-        let current_debt = table::borrow_mut(ledger, participant);
-        *current_debt = addNums(*current_debt, expense);
-    } else {
-        // Add a new debt entry for the participant
-        table::add(ledger, participant, expense);
-    }
-}
-
-public entry fun split_expense(
-    account: &signer,
-    group_id: u64,
-    participants: vector<address>,
-    split_data: Table<address, I64>
-) acquires Groups {
-    let addr = signer::address_of(account);
-    // Borrow the group
-    let groups = borrow_global_mut<Groups>(@dona_pay);
-    let group = table::borrow_mut(&mut groups.allGroups, group_id);
-    // Ensure the caller is a member of the group
-    assert!(vector::contains(&group.members, &addr), PERMISSION_DENIED);
-    // Borrow the group ledger
-    let ledger = &mut group.ledger;
-    // Iterate through participants and apply the update_ledger function
-    let i = 0;
-    let len = vector::length(&participants);
-    while (i < len) {
-        let participant = *vector::borrow(&participants, i);
-        update_ledger(ledger, &split_data, participant);
-        i = i + 1;
-    };
-    // Ensure that total debt equals the creator's surplus
-    let is_valid = isLedgerValid(ledger, &group.members);
-    assert!(is_valid, LEDGER_MUST_BALANCE);
-}
-
-/// Checks if the ledger is in a valid state (sum of all debts and lends must be zero)
-public fun isLedgerValid(ledger: &Table<address, I64>, members: &vector<address>): bool {
-    let net_balance = I64 { isNegative: false, value: 0 };
-    let i = 0;
-    let len = vector::length(members);
-    while (i < len) {
-        let member = *vector::borrow(members, i);
-        let balance = table::borrow(ledger, member);
-        net_balance = addNums(net_balance, *balance);
-        i = i + 1;
-    };
-    // The ledger is valid if the net balance is zero (debts and lends cancel each other out)
-    net_balance.value == 0
-}
-
-// Helper function to add two I64 numbers
-fun addNums(a: I64, b: I64): I64 {
-    if (a.isNegative == b.isNegative) {
-        // If both numbers have the same sign, add their values
-        I64 { isNegative: a.isNegative, value: a.value + b.value }
-    } else {
-        // If the signs are different, subtract the smaller value from the larger
-        if (a.value > b.value) {
-            I64 { isNegative: a.isNegative, value: a.value - b.value }
-        } else if (a.value < b.value) {
-            I64 { isNegative: b.isNegative, value: b.value - a.value }
-        } else {
-            // If the values are equal but signs are different, the result is zero
-            I64 { isNegative: false, value: 0 }
-        }
-    }
-}
-
-   // public entry fun settle_debt(
-   //    account: &signer, 
-   //    group_id: u64, 
-   //    creditor: address, 
-   //    amount: u64
-   // ) acquires Groups {
-   //    let debtor = signer::address_of(account);
-
-   //    // Borrow the group and the group ledger
-   //    let group = &mut table::borrow_mut<u64, Group>(&mut borrow_global_mut<Groups>(@dona_pay).allGroups, group_id);
-   //    let ledger = &mut group.ledger.debts;
-
-   //    // Ensure the debtor has a debt entry with the creditor
-   //    let creditor_table = table::borrow_mut<address, Table<address, u64>>(ledger, debtor);
-   //    let debt = table::borrow_mut<address, u64>(creditor_table, creditor);
-   //    assert!(*debt >= amount, MEMBER_NOT_PRESENT);
-
-   //    // Reduce the debt
-   //    *debt = *debt - amount;
-
-   //    // If the debt is fully settled, remove the entry
-   //    if (*debt == 0) {
-   //       table::remove<address, u64>(creditor_table, creditor);
-   //    }
-
-   //    // If the debtor has no more creditors, remove their entry from the ledger
-   //    if (table::length(creditor_table) == 0) {
-   //       table::remove<address, Table<address, u64>>(ledger, debtor);
-   //    }
-   // }
-
-
-
    #[view]
    public fun getRandomValue(): u64 acquires Random{
       borrow_global<Random>(@dona_pay).num
@@ -337,16 +211,5 @@ fun addNums(a: I64, b: I64): I64 {
        let num_mut = &mut borrow_global_mut<Random>(@dona_pay).num;
        *num_mut = num;
    } 
-
-
 }
-
-// -ve = debt
-//  +ve = surplus
-
-// add1: -50 + 30 = -20
-// add2: +30 - 30 = 0
-// add3: +20
-// 4: -100
-// 5: +100
 
