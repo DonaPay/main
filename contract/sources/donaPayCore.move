@@ -23,13 +23,26 @@ module dona_pay::DonaPayCore {
       allVoteLedgers : Table<u64, VoteLedger>
    }
 
+   // state 0 -> inactive
+   // state 1 -> active
+   struct Sabotage has store{
+      state : u64,
+      selected : address
+   }
+
+    struct Sabotages has key {
+      allsabotages : Table<u64, Sabotage>,
+      curr_id : u64
+   }
+
    struct Group has store, copy, drop {
       id: u64,
       name: String,
       admins: vector<address>,
       members: vector<address>,
       joinRequests: vector<address>,
-      imageUrl: String
+      imageUrl: String,
+      pastSabotages : vector<u64>
    }
 
    struct Groups has key {
@@ -58,6 +71,10 @@ module dona_pay::DonaPayCore {
       });
       move_to(account, VoteLedgers {
          allVoteLedgers: table::new<u64, VoteLedger>()
+      });
+      move_to(account, Sabotages {
+         allsabotages: table::new<u64, Sabotage>(),
+         curr_id : 0
       });
       move_to(account, Random {
          num: 0
@@ -167,6 +184,7 @@ module dona_pay::DonaPayCore {
          members: members,
          joinRequests: join_requests,
          imageUrl:imageUrl,
+         pastSabotages : vector::empty<u64>()
       };
 
       vector::push_back<u64>(&mut borrow_global_mut<Users>(creator).user.groups, group_id);
@@ -195,6 +213,27 @@ module dona_pay::DonaPayCore {
       };
       vector::push_back<address>(&mut group.members, member_addr);
       vector::push_back<u64>(&mut borrow_global_mut<Users>(member_addr).user.groups, group_id);
+   }
+
+   public entry fun create_sabotage(account: &signer, group_id: u64) acquires Groups, Sabotages {
+      let member_addr = signer::address_of(account);
+      let group =  table::borrow_mut<u64, Group>(&mut borrow_global_mut<Groups>(@dona_pay).allGroups, group_id);
+      assert!(vector::contains<address>(&group.members, &member_addr),110);
+
+      let global_sabotages = borrow_global_mut<Sabotages>(@dona_pay);
+      global_sabotages.curr_id = global_sabotages.curr_id + 1;
+
+      let curr_sabotage_id = global_sabotages.curr_id;
+
+      let sabotage = Sabotage{
+         state : 1,
+         selected : @dona_pay
+      };
+      
+      table::add<u64, Sabotage>(&mut global_sabotages.allsabotages, curr_sabotage_id, sabotage );
+
+      vector::push_back<u64>(&mut group.pastSabotages, curr_sabotage_id);
+
    }
 
    #[view]
