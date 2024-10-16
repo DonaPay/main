@@ -6,21 +6,23 @@ import { Skeleton } from "../ui/skeleton";
 import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
 import { AddressDisplay } from "@/utils/addressUtility";
 import { getUsersByArray } from "@/view-functions/getUsersByArray";
-import Link from "next/link";
+import { AddMemberToGroup } from "@/entry-functions/AddMemberToGroup";
 import { useGlobalContext } from "@/GlobalProvider";
 import { ApproveJoinGroupRequest } from "@/entry-functions/ApproveJoinRequest";
 import { toast } from "sonner";
 import { waitForTransactionConfirmation } from "@/utils/waitForTransaction";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
+import { Link } from "lucide-react";
 
 const GroupDetails = ({ group }: { group: Group }) => {
+  const [memberAddress, setMemberAddress] = useState<string>("");
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [admins, setAdmins] = useState<User[]>([]);
   const [groupMembers, setGroupMembers] = useState<User[]>([]);
   const [groupJoinRequests, setGroupJoinRequests] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const { signAndSubmitTransaction } = useWallet();
-  const { user } = useGlobalContext();
+  const { user, groups } = useGlobalContext();
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
   const linkUrl = `${baseUrl}/app/?groupId=${group.id}`;
 
@@ -33,7 +35,7 @@ const GroupDetails = ({ group }: { group: Group }) => {
         console.error(err);
       });
     fetchData();
-  }, [group]);
+  }, [group, groups]);
 
   const fetchData = async () => {
     setLoading(true); // Set loading to true before data fetching
@@ -62,6 +64,28 @@ const GroupDetails = ({ group }: { group: Group }) => {
       });
     } catch (error: any) {
       toast.error("Something went wrong", error);
+    }
+  };
+
+  const handleMemberAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setMemberAddress(event.target.value); // Update the state as the user types
+  };
+
+  const handleAddMember = async () => {
+    try {
+      const trxObject = await AddMemberToGroup(Number(group.id), memberAddress);
+      if (trxObject) {
+        const txn = await signAndSubmitTransaction(trxObject as any);
+        console.log("create Group txn", txn);
+        await fetchData();
+        return toast.promise(waitForTransactionConfirmation(txn.hash), {
+          loading: "Member adding in process",
+          success: "Member added successfully!",
+          error: "Member could not be added",
+        });
+      } else toast.warning("No image entered");
+    } catch (error) {
+      toast.error("Please try again later");
     }
   };
 
@@ -203,6 +227,25 @@ const GroupDetails = ({ group }: { group: Group }) => {
                 </div>
               </div>
             ))}
+          {admins.some((admin) => admin.addr === user?.addr) && (
+            <div className="flex flex-col w-full mt-8">
+              <div className="flex items-center gap-3 w-full">
+                <input
+                  type="text"
+                  value={memberAddress} // Controlled input
+                  onChange={handleMemberAddressChange} // Update state on change
+                  placeholder="Enter Address"
+                  className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
+                onClick={handleAddMember}
+              >
+                Add Member
+              </button>
+            </div>
+          )}
         </div>
 
         {/* join Requests */}
