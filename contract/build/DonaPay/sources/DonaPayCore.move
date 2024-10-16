@@ -63,6 +63,7 @@ module dona_pay::DonaPayCore {
    const LEDGER_MUST_BALANCE: u64 = 150;
    const SABOTAGE_ID_MISMATCH: u64 = 160;
    const SABOTAGE_INACTIVE: u64 = 162;
+   const LEDGER_NOT_FOUND: u64 = 165;
    const REQUEST_ALREADY_SENT: u64 = 200;
 
    // This function is only called once when the module is published for the first time.
@@ -213,7 +214,7 @@ module dona_pay::DonaPayCore {
       vector::push_back<u64>(&mut borrow_global_mut<Users>(member_addr).user.groups, group_id);
    }
 
-   public entry fun create_sabotage(account: &signer, group_id: u64) acquires Groups, Sabotages {
+   public entry fun create_sabotage(account: &signer, group_id: u64) acquires Groups, Sabotages, VoteLedgers{
       let member_addr = signer::address_of(account);
       let group =  table::borrow_mut<u64, Group>(&mut borrow_global_mut<Groups>(@dona_pay).allGroups, group_id);
       assert!(vector::contains<address>(&group.members, &member_addr),110);
@@ -228,10 +229,24 @@ module dona_pay::DonaPayCore {
          state : 1,
          selected : @dona_pay
       };
+
+      let global_voteLedgers = borrow_global_mut<VoteLedgers>(@dona_pay);
+
+      let voteLedger = VoteLedger {
+         votes : table::new<address, u64>(),
+         totalVotes : 0
+      };
       
       table::add<u64, Sabotage>(&mut global_sabotages.allSabotages, curr_sabotage_id, sabotage );
+      table::add<u64, VoteLedger>(&mut global_voteLedgers.allVoteLedgers, curr_sabotage_id, voteLedger );
 
       vector::push_back<u64>(&mut group.pastSabotages, curr_sabotage_id);
+   }
+
+   #[view]
+   public fun get_vote_ledger(sabotage_id : u64): u64 acquires  VoteLedgers{
+      assert!(table::contains<u64, VoteLedger>(&borrow_global<VoteLedgers>(@dona_pay).allVoteLedgers, sabotage_id), LEDGER_NOT_FOUND);
+      table::borrow<u64, VoteLedger>(&borrow_global<VoteLedgers>(@dona_pay).allVoteLedgers, sabotage_id).totalVotes
    }
 
    #[view]
@@ -257,7 +272,7 @@ module dona_pay::DonaPayCore {
     assert!(vector::contains(&group.pastSabotages, &sabotage_id), 160);
     
     let vote_ledgers = borrow_global_mut<VoteLedgers>(@dona_pay);
-    let vote_ledger = table::borrow_mut(&mut vote_ledgers.allVoteLedgers, sabotage_id);
+    let vote_ledger = table::borrow_mut<u64, VoteLedger>(&mut vote_ledgers.allVoteLedgers, sabotage_id);
     let total_votes = &mut vote_ledger.totalVotes;
     *total_votes = *total_votes + 1;
     
