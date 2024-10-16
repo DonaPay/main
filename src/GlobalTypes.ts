@@ -13,3 +13,9 @@ export type Group = {
   members: string[];
   joinRequests: string[];
 };
+
+export type Sabotage = {
+  id: number;
+  state: number;
+  selected: string;
+};

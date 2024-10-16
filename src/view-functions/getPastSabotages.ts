@@ -1,10 +1,10 @@
 import { aptosClient } from "@/utils/aptosClient";
 import { PUBLISHER_ADDRESS } from "@/constants";
-import { Group } from "@/GlobalTypes";
+import {Sabotage } from "@/GlobalTypes";
 
 export const getPastSabotages = async (grpId: number) => {
   try {
-    const group = await aptosClient().view<[Group]>({
+    const sabotages = await aptosClient().view<[Sabotage[]]>({
       payload: {
         function: `${PUBLISHER_ADDRESS}::DonaPayCore::get_group_past_sabotages`,
         typeArguments: [],
@@ -12,7 +12,7 @@ export const getPastSabotages = async (grpId: number) => {
       },
     });
 
-    return group[0];
+    return sabotages[0];
   } catch (error: any) {
     console.error("An unexpected error occurred:", error);
     return null;

@@ -13,7 +13,6 @@ import { toast } from "sonner";
 import { waitForTransactionConfirmation } from "@/utils/waitForTransaction";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { Link } from "lucide-react";
-import { link } from "fs";
 
 const GroupDetails = ({ group }: { group: Group }) => {
   const [memberAddress, setMemberAddress] = useState<string>("");

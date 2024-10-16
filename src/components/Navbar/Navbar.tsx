@@ -12,6 +12,10 @@ const menuLinks = [
     path: "/",
     label: "HOME",
   },
+  {
+    path: "https://x.com/0xdonapay",
+    label: "Socials",
+  },
 ];
 
 const Navbar = () => {
@@ -97,6 +101,12 @@ const Navbar = () => {
               Github &#8599;
             </a>
             <br />
+            <a href="https://x.com/Adipundir" className="text-black text-lg font-semibold">
+              Aditya Pundir &#8599;
+            </a>
+            <a href="https://x.com/Raghav91304587" className="text-black text-lg font-semibold">
+              Raghav lathi &#8599;
+            </a>
           </div>
         </div>
       </div>
