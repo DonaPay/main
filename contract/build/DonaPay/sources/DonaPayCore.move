@@ -214,7 +214,7 @@ module dona_pay::DonaPayCore {
       vector::push_back<u64>(&mut borrow_global_mut<Users>(member_addr).user.groups, group_id);
    }
 
-   public entry fun create_sabotage(account: &signer, group_id: u64) acquires Groups, Sabotages, VoteLedgers{
+   public entry fun create_sabotage(account: &signer, group_id: u64): u64 acquires Groups, Sabotages, VoteLedgers{
       let member_addr = signer::address_of(account);
       let group =  table::borrow_mut<u64, Group>(&mut borrow_global_mut<Groups>(@dona_pay).allGroups, group_id);
       assert!(vector::contains<address>(&group.members, &member_addr),110);
@@ -241,6 +241,8 @@ module dona_pay::DonaPayCore {
       table::add<u64, VoteLedger>(&mut global_voteLedgers.allVoteLedgers, curr_sabotage_id, voteLedger );
 
       vector::push_back<u64>(&mut group.pastSabotages, curr_sabotage_id);
+
+      curr_sabotage_id
    }
 
    #[view]

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { waitForTransactionConfirmation } from "@/utils/waitForTransaction";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { Link } from "lucide-react";
+import { link } from "fs";
 
 const GroupDetails = ({ group }: { group: Group }) => {
   const [memberAddress, setMemberAddress] = useState<string>("");
@@ -23,7 +24,7 @@ const GroupDetails = ({ group }: { group: Group }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const { signAndSubmitTransaction } = useWallet();
   const { user, groups } = useGlobalContext();
-  
+
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
   const linkUrl = `${baseUrl}/app/?groupId=${group.id}`;
 
@@ -31,10 +32,10 @@ const GroupDetails = ({ group }: { group: Group }) => {
     QRCode.toDataURL(linkUrl)
       .then((url) => {
         setQrCodeUrl(url);
-        console.log("URL", url)
+        console.log("QR Code URL:", url);
       })
       .catch((err) => {
-        console.log("error in setting url")
+        console.log("error in setting url");
         console.error(err);
       });
     fetchData();
