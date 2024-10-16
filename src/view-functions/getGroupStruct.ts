@@ -15,8 +15,6 @@ export const getGroupStruct = async (id: number) => {
     return group[0];
   } catch (error: any) {
     if (error.message.includes("4")) {
-      console.error("Error: Group not found with the given ID.");
-      alert("Error: Group not found with the given ID.");
       return null;
     } else {
       console.error("An unexpected error occurred:", error);

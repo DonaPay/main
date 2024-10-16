@@ -23,6 +23,7 @@ const GroupDetails = ({ group }: { group: Group }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const { signAndSubmitTransaction } = useWallet();
   const { user, groups } = useGlobalContext();
+  
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
   const linkUrl = `${baseUrl}/app/?groupId=${group.id}`;
 
@@ -30,8 +31,10 @@ const GroupDetails = ({ group }: { group: Group }) => {
     QRCode.toDataURL(linkUrl)
       .then((url) => {
         setQrCodeUrl(url);
+        console.log("URL", url)
       })
       .catch((err) => {
+        console.log("error in setting url")
         console.error(err);
       });
     fetchData();

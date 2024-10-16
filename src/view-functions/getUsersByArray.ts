@@ -1,6 +1,7 @@
 import { aptosClient } from "@/utils/aptosClient";
 import { PUBLISHER_ADDRESS } from "@/constants";
-import { User } from "@/GlobalTypes";
+import { User } from "@/GlobalTypes";;
+import { toast } from "sonner";
 
 export const getUsersByArray = async (addresses: string[]) => {
   try {
@@ -16,10 +17,10 @@ export const getUsersByArray = async (addresses: string[]) => {
   } catch (error: any) {
     const errorMessage = error?.message || "An error occurred";
     if (errorMessage.includes("Failed to borrow global resource")) {
-      alert("One or more addresses that you passed may not be valid. Try again");
+      toast.error("One or more addresses that you passed may not be valid. Try again");
     } else {
       console.error("Error fetching users:", errorMessage);
-      alert("Failed to fetch users. Please try again later.");
+      toast.error("Failed to fetch users. Please try again later.");
     }
 
     return null;

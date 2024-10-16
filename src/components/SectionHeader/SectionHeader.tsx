@@ -5,7 +5,7 @@ import { Ellipsis } from 'lucide-react'
 const SectionHeader = ({ group, section, setSection }: SectionHeaderPropsType) => {
     return (
         <div className='bg-gray-200 dark:bg-neutral-900 text-black
-       dark:text-white flex justify-between items-center w-full min-h-[10vh] border px-4 py-2'>
+       dark:text-white flex justify-between items-center w-full min-h-[10vh] px-4 py-2'>
             {(section === "group" || section === "group-details") && group && (
                 <div
                     className="flex items-center gap-2 w-full rounded-md"

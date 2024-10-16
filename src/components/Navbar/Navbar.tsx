@@ -12,37 +12,13 @@ const menuLinks = [
     path: "/",
     label: "HOME",
   },
-  {
-    path: "/lendingpool",
-    label: "LIQUIDITY POOL",
-  },
-  {
-    path: "/flashloan",
-    label: "FLASH LOAN",
-  },
-  {
-    path: "/addressbook",
-    label: "ADDRESS BOOK",
-  },
-  {
-    path: "/termsandconditions",
-    label: "T&C",
-  },
 ];
 
 const Navbar = () => {
   const container = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [onAppScreen, setOnAppScreen] = useState<boolean>(false)
-
 
   const tl = useRef(gsap.timeline({ paused: true }));
-
-  useEffect(() => {
-    const url = window.location.href;
-    if(url.endsWith("app/") || url.endsWith("app"))
-      setOnAppScreen(() => true)
-  },[])
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -78,7 +54,7 @@ const Navbar = () => {
 
   return (
     <div className="menu-container" ref={container}>
-      <div className={`menu-bar ${onAppScreen ? "bg-gray-100 dark:bg-neutral-800" : "" } `}>
+      <div className={`menu-bar`}>
         <div className="menu-logo font-bold text-xl">
           <Link href={"/"}>DonaPay</Link>
         </div>
