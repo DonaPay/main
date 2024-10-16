@@ -3,6 +3,8 @@ module dona_pay::DonaPayCore {
    use std::string::{String};
    use aptos_framework:: table:: {Self, Table};
    use std::vector;
+   use std::option;
+
 
    struct User has store, copy, drop {
       addr: address,
@@ -258,61 +260,81 @@ module dona_pay::DonaPayCore {
     let vote_ledger = table::borrow_mut(&mut vote_ledgers.allVoteLedgers, sabotage_id);
     let total_votes = &mut vote_ledger.totalVotes;
     *total_votes = *total_votes + 1;
-    let vote_count = table::borrow_mut(&mut vote_ledger.votes, vote);
-    *vote_count = *vote_count + 1;
-   }
-
-   #[randomness]
-   entry fun choose_payer(account: &signer, group_id: u64, sabotage_id: u64) acquires  Groups, Sabotages, VoteLedgers  {
-      let member_addr = signer::address_of(account);
-      let groups = borrow_global_mut<Groups>(@dona_pay);
-      let group = table::borrow_mut(&mut groups.allGroups, group_id);
-      assert!(vector::contains(&group.members, &member_addr), MEMBER_NOT_PRESENT);
-      assert!(vector::contains(&group.pastSabotages, &sabotage_id), SABOTAGE_ID_MISMATCH);
-      
-      let sabotage = table::borrow_mut<u64, Sabotage>(&mut borrow_global_mut<Sabotages>(@dona_pay).allSabotages, sabotage_id);
-      assert!(sabotage.state == 1, SABOTAGE_INACTIVE);
-
-      let vote_ledger = table::borrow<u64, VoteLedger>(&borrow_global<VoteLedgers>(@dona_pay).allVoteLedgers, sabotage_id);
-
-      let members = group.members;
-      let members_count = vector::length(&members);
-
-      let i = 0;
-      let random_needed = true;
-
-      while(i < members_count){
-         let curr_vote_count = table::borrow_with_default<address,u64>(&vote_ledger.votes, *vector::borrow<address>(&members,i), &0);
-         if(*curr_vote_count > vote_ledger.totalVotes){
-            sabotage.selected = *vector::borrow<address>(&members,i);
-            random_needed = false;
-            break
-         };
-      };
-      if(random_needed == true){
-         select_someone(group_id, sabotage_id);
-      };
-      sabotage.state = 0;
-
-   }
- 
-   #[randomness]
-   entry fun select_someone(group_id: u64, sabotage_id: u64) acquires Groups, Sabotages{
-      random_payer_setter(group_id, sabotage_id);
-   }
-
-   fun random_payer_setter(group_id: u64, sabotage_id: u64) acquires Groups, Sabotages {
-      let groups = borrow_global_mut<Groups>(@dona_pay);
-      let group = table::borrow_mut(&mut groups.allGroups, group_id);
-      let memberCount = vector::length<address>(&group.members);
-      let _rand_num = aptos_framework::randomness::u64_range(0, memberCount);
-      let sabotage = table::borrow_mut<u64, Sabotage>(&mut borrow_global_mut<Sabotages>(@dona_pay).allSabotages, sabotage_id);
-      assert!(sabotage.state == 1, SABOTAGE_INACTIVE);
-      sabotage.selected = *vector::borrow<address>(&group.members, _rand_num)
-   } 
+    
+    if (!table::contains(&vote_ledger.votes, vote)) {
+        table::add(&mut vote_ledger.votes, vote, 1);
+    } else {
+        let vote_count = table::borrow_mut(&mut vote_ledger.votes, vote);
+        *vote_count = *vote_count + 1;
+    };
 }
 
-// #[view]
-   // public fun getRandomValue(): u64 acquires Random{
-   //    borrow_global<Random>(@dona_pay).num
+
+   #[randomness]
+   entry fun choose_payer(account: &signer, group_id: u64, sabotage_id: u64) acquires Groups, Sabotages, VoteLedgers {
+      let member_addr = signer::address_of(account);
+      let groups = borrow_global<Groups>(@dona_pay);
+      let group = table::borrow(&groups.allGroups, group_id);
+      assert!(vector::contains(&group.members, &member_addr), MEMBER_NOT_PRESENT);
+      assert!(vector::contains(&group.pastSabotages, &sabotage_id), SABOTAGE_ID_MISMATCH);
+
+      let vote_ledger = table::borrow(&borrow_global<VoteLedgers>(@dona_pay).allVoteLedgers, sabotage_id);
+      let members = &group.members;
+      let members_count = vector::length(members);
+
+      // First, determine if we need to select randomly
+      let selected_member = option::none();
+      let i = 0;
+      while (i < members_count) {
+         let curr_member = vector::borrow(members, i);
+         let curr_vote_count = table::borrow_with_default(&vote_ledger.votes, *curr_member, &0);
+         if (*curr_vote_count > vote_ledger.totalVotes) {
+               selected_member = option::some(*curr_member);
+               break
+         };
+         i = i + 1;
+      };
+
+      // Now update the sabotage
+      let sabotages = borrow_global_mut<Sabotages>(@dona_pay);
+      let sabotage = table::borrow_mut(&mut sabotages.allSabotages, sabotage_id);
+      assert!(sabotage.state == 1, SABOTAGE_INACTIVE);
+
+      if (option::is_some(&selected_member)) {
+         sabotage.selected = option::extract(&mut selected_member);
+      } else {
+         // If no member was selected based on votes, use random selection
+         let rand_num = aptos_framework::randomness::u64_range(0, members_count);
+         sabotage.selected = *vector::borrow(members, rand_num);
+      };
+
+      sabotage.state = 0;
+   }
+
+
+   // fun random_payer_setter(group_id: u64, sabotage_id: u64) acquires Groups, Sabotages {
+   //    let groups = borrow_global<Groups>(@dona_pay);
+   //    let group = table::borrow(&groups.allGroups, group_id);
+   //    let memberCount = vector::length(&group.members);
+   //    let rand_num = aptos_framework::randomness::u64_range(0, memberCount);
+   //    let sabotages = borrow_global_mut<Sabotages>(@dona_pay);
+   //    let sabotage = table::borrow_mut<u64,Sabotage>(&mut sabotages.allSabotages, sabotage_id);
+   //    assert!(sabotage.state == 1, SABOTAGE_INACTIVE);
+   //    sabotage.selected = *vector::borrow(&group.members, rand_num);
    // }
+
+  #[view]
+   public fun get_payer(group_id: u64, sabotage_id: u64): address acquires Sabotages, Groups {
+    let groups = borrow_global<Groups>(@dona_pay);
+    let group = table::borrow(&groups.allGroups, group_id);
+    
+    // Ensure the sabotage exists for this group
+    assert!(vector::contains(&group.pastSabotages, &sabotage_id), SABOTAGE_ID_MISMATCH);
+
+    let sabotages = borrow_global<Sabotages>(@dona_pay);
+    let sabotage = table::borrow(&sabotages.allSabotages, sabotage_id);
+
+    // Return the selected payer
+    sabotage.selected
+}
+}

@@ -3,6 +3,8 @@ module dona_pay::DonaPayCore {
    use std::string::{String};
    use aptos_framework:: table:: {Self, Table};
    use std::vector;
+   use std::option;
+
 
    struct User has store, copy, drop {
       addr: address,
@@ -16,7 +18,8 @@ module dona_pay::DonaPayCore {
    }
 
    struct VoteLedger has store{
-      votes : Table<address, u64>
+      votes : Table<address, u64>,
+      totalVotes : u64
    }
 
    struct VoteLedgers has key {
@@ -32,7 +35,7 @@ module dona_pay::DonaPayCore {
    }
 
    struct Sabotages has key {
-      allsabotages : Table<u64, Sabotage>,
+      allSabotages : Table<u64, Sabotage>,
       curr_id : u64
    }
 
@@ -51,10 +54,6 @@ module dona_pay::DonaPayCore {
       curr_id: u64,
    }
 
-   struct Random has key{
-      num: u64
-   }
-
    const USER_DOES_NOT_EXISTS: u64 = 112;
    const USER_ALREADY_EXISTS : u64  = 1;
    const GROUP_NOT_FOUND: u64 = 4;
@@ -62,12 +61,9 @@ module dona_pay::DonaPayCore {
    const MEMBER_NOT_PRESENT : u64 = 110;
    const MEMBER_ALREADY_PRESENT: u64 = 111;
    const LEDGER_MUST_BALANCE: u64 = 150;
-<<<<<<< HEAD
    const SABOTAGE_ID_MISMATCH: u64 = 160;
-
-=======
+   const SABOTAGE_INACTIVE: u64 = 162;
    const REQUEST_ALREADY_SENT: u64 = 200;
->>>>>>> c921dd82dfb1435a7f03f5deed0ed3c338c59020
 
    // This function is only called once when the module is published for the first time.
    fun init_module(account: &signer) {
@@ -79,13 +75,9 @@ module dona_pay::DonaPayCore {
          allVoteLedgers: table::new<u64, VoteLedger>()
       });
       move_to(account, Sabotages {
-         allsabotages: table::new<u64, Sabotage>(),
+         allSabotages: table::new<u64, Sabotage>(),
          curr_id : 0
       });
-      move_to(account, Random {
-         num: 0
-      });
-
    }
 
    public entry fun createUser(account: &signer, name: String, photoUrl: String) {
@@ -237,7 +229,7 @@ module dona_pay::DonaPayCore {
          selected : @dona_pay
       };
       
-      table::add<u64, Sabotage>(&mut global_sabotages.allsabotages, curr_sabotage_id, sabotage );
+      table::add<u64, Sabotage>(&mut global_sabotages.allSabotages, curr_sabotage_id, sabotage );
 
       vector::push_back<u64>(&mut group.pastSabotages, curr_sabotage_id);
    }
@@ -250,7 +242,7 @@ module dona_pay::DonaPayCore {
       let i = 0;
       while (i < sabotages_count) {
          let sabotage_id = *vector::borrow(&group.pastSabotages, i);
-         let sabotage = *table::borrow(&borrow_global<Sabotages>(@dona_pay).allsabotages, sabotage_id);
+         let sabotage = *table::borrow(&borrow_global<Sabotages>(@dona_pay).allSabotages, sabotage_id);
          vector::push_back(&mut sabotages, sabotage);
          i = i + 1;
       };
@@ -266,24 +258,83 @@ module dona_pay::DonaPayCore {
     
     let vote_ledgers = borrow_global_mut<VoteLedgers>(@dona_pay);
     let vote_ledger = table::borrow_mut(&mut vote_ledgers.allVoteLedgers, sabotage_id);
-    let vote_count = table::borrow_mut(&mut vote_ledger.votes, vote);
-    *vote_count = *vote_count + 1;
+    let total_votes = &mut vote_ledger.totalVotes;
+    *total_votes = *total_votes + 1;
+    
+    if (!table::contains(&vote_ledger.votes, vote)) {
+        table::add(&mut vote_ledger.votes, vote, 1);
+    } else {
+        let vote_count = table::borrow_mut(&mut vote_ledger.votes, vote);
+        *vote_count = *vote_count + 1;
+    };
 }
 
-   #[view]
-   public fun getRandomValue(): u64 acquires Random{
-      borrow_global<Random>(@dona_pay).num
-   }
- 
+
    #[randomness]
-   entry fun test_rand() acquires Random{
-      test_randomness();
+   entry fun choose_payer(account: &signer, group_id: u64, sabotage_id: u64) acquires Groups, Sabotages, VoteLedgers {
+      let member_addr = signer::address_of(account);
+      let groups = borrow_global<Groups>(@dona_pay);
+      let group = table::borrow(&groups.allGroups, group_id);
+      assert!(vector::contains(&group.members, &member_addr), MEMBER_NOT_PRESENT);
+      assert!(vector::contains(&group.pastSabotages, &sabotage_id), SABOTAGE_ID_MISMATCH);
+
+      let vote_ledger = table::borrow(&borrow_global<VoteLedgers>(@dona_pay).allVoteLedgers, sabotage_id);
+      let members = &group.members;
+      let members_count = vector::length(members);
+
+      // First, determine if we need to select randomly
+      let selected_member = option::none();
+      let i = 0;
+      while (i < members_count) {
+         let curr_member = vector::borrow(members, i);
+         let curr_vote_count = table::borrow_with_default(&vote_ledger.votes, *curr_member, &0);
+         if (*curr_vote_count > vote_ledger.totalVotes) {
+               selected_member = option::some(*curr_member);
+               break
+         };
+         i = i + 1;
+      };
+
+      // Now update the sabotage
+      let sabotages = borrow_global_mut<Sabotages>(@dona_pay);
+      let sabotage = table::borrow_mut(&mut sabotages.allSabotages, sabotage_id);
+      assert!(sabotage.state == 1, SABOTAGE_INACTIVE);
+
+      if (option::is_some(&selected_member)) {
+         sabotage.selected = option::extract(&mut selected_member);
+      } else {
+         // If no member was selected based on votes, use random selection
+         let rand_num = aptos_framework::randomness::u64_range(0, members_count);
+         sabotage.selected = *vector::borrow(members, rand_num);
+      };
+
+      sabotage.state = 0;
    }
 
-   fun test_randomness() acquires Random {
-      let num = aptos_framework::randomness::u64_range(0, 10);
-       let num_mut = &mut borrow_global_mut<Random>(@dona_pay).num;
-       *num_mut = num;
-   } 
-}
 
+   // fun random_payer_setter(group_id: u64, sabotage_id: u64) acquires Groups, Sabotages {
+   //    let groups = borrow_global<Groups>(@dona_pay);
+   //    let group = table::borrow(&groups.allGroups, group_id);
+   //    let memberCount = vector::length(&group.members);
+   //    let rand_num = aptos_framework::randomness::u64_range(0, memberCount);
+   //    let sabotages = borrow_global_mut<Sabotages>(@dona_pay);
+   //    let sabotage = table::borrow_mut<u64,Sabotage>(&mut sabotages.allSabotages, sabotage_id);
+   //    assert!(sabotage.state == 1, SABOTAGE_INACTIVE);
+   //    sabotage.selected = *vector::borrow(&group.members, rand_num);
+   // }
+
+  #[view]
+   public fun get_payer(group_id: u64, sabotage_id: u64): address acquires Sabotages, Groups {
+    let groups = borrow_global<Groups>(@dona_pay);
+    let group = table::borrow(&groups.allGroups, group_id);
+    
+    // Ensure the sabotage exists for this group
+    assert!(vector::contains(&group.pastSabotages, &sabotage_id), SABOTAGE_ID_MISMATCH);
+
+    let sabotages = borrow_global<Sabotages>(@dona_pay);
+    let sabotage = table::borrow(&sabotages.allSabotages, sabotage_id);
+
+    // Return the selected payer
+    sabotage.selected
+}
+}
